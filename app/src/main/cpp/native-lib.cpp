@@ -41,3 +41,31 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEcho(JNIEnv *env, jobje
                                                              jstring input) {
     return stdToJstring(env, jstringToStd(env, input));
 }
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeStart(JNIEnv *env, jobject /*thiz*/) {
+    return stdToJstring(env, engine().startAudio());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeStop(JNIEnv *env, jobject /*thiz*/) {
+    return stdToJstring(env, engine().stopAudio());
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeIsRunning(JNIEnv * /*env*/,
+                                                                  jobject /*thiz*/) {
+    return engine().isRunning() ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSampleRate(JNIEnv * /*env*/,
+                                                                    jobject /*thiz*/) {
+    return engine().sampleRate();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeFramesPerBurst(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/) {
+    return engine().framesPerBurst();
+}

@@ -4,9 +4,21 @@
     <!-- BAB 10: izin rekam audio untuk input mikrofon / audio interface. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-    <!-- BAB 10: dukungan USB host untuk USB Audio Interface. -->
+    <!-- Dukungan USB host untuk USB Audio Interface (mis. iRig). -->
     <uses-feature
         android:name="android.hardware.usb.host"
+        android:required="false" />
+
+    <!-- Mikrofon dan jalur audio low-latency; opsional agar tetap bisa dipasang
+         di perangkat tanpa fitur tersebut. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.audio.low_latency"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.audio.pro"
         android:required="false" />
 
     <application

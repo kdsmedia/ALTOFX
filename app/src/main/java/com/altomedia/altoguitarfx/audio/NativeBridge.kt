@@ -24,7 +24,31 @@ object NativeBridge {
     fun echo(input: String): String =
         if (isLoaded) nativeEcho(input) else input
 
+    // ---- Kontrol audio (BAB 4) ----
+
+    fun start(): String = if (isLoaded) nativeStart() else "Native library tidak tersedia"
+
+    fun stop(): String = if (isLoaded) nativeStop() else "Native library tidak tersedia"
+
+    fun isRunning(): Boolean = isLoaded && nativeIsRunning()
+
+    /** Sample rate stream aktif, 0 bila belum berjalan. */
+    fun sampleRate(): Int = if (isLoaded) nativeSampleRate() else 0
+
+    /** Jumlah frame per callback, 0 bila belum berjalan. */
+    fun framesPerBurst(): Int = if (isLoaded) nativeFramesPerBurst() else 0
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
+
+    private external fun nativeStart(): String
+
+    private external fun nativeStop(): String
+
+    private external fun nativeIsRunning(): Boolean
+
+    private external fun nativeSampleRate(): Int
+
+    private external fun nativeFramesPerBurst(): Int
 }

@@ -18,6 +18,8 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags += listOf("-std=c++17", "-fno-exceptions", "-fno-rtti")
+                // Oboe (prefab) memerlukan shared STL.
+                arguments += "-DANDROID_STL=c++_shared"
             }
         }
         ndk {
@@ -56,6 +58,7 @@ android {
 
     buildFeatures {
         compose = true
+        prefab = true
     }
 
     composeOptions {
@@ -67,6 +70,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
+
+    // Oboe: audio I/O low-latency (BAB 4). Menyediakan native lib via prefab.
+    implementation("com.google.oboe:oboe:1.9.0")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)
