@@ -2,11 +2,13 @@
 
 #include "Chorus.h"
 #include "Compressor.h"
+#include "Delay.h"
 #include "DriveEffect.h"
 #include "Equalizer.h"
 #include "Flanger.h"
 #include "NoiseGate.h"
 #include "Phaser.h"
+#include "Reverb.h"
 #include "Tremolo.h"
 
 namespace alto {
@@ -29,6 +31,9 @@ EffectChain::EffectChain() {
     effects_[static_cast<size_t>(EffectType::Flanger)] = std::make_unique<Flanger>();
     effects_[static_cast<size_t>(EffectType::Phaser)] = std::make_unique<Phaser>();
     effects_[static_cast<size_t>(EffectType::Tremolo)] = std::make_unique<Tremolo>();
+    // BAB 11: efek ruang/waktu.
+    effects_[static_cast<size_t>(EffectType::Delay)] = std::make_unique<Delay>();
+    effects_[static_cast<size_t>(EffectType::Reverb)] = std::make_unique<Reverb>();
 }
 
 void EffectChain::prepare(double sampleRate, int32_t channels) {

@@ -48,7 +48,9 @@ fun EffectsScreen() {
                 EffectType.CHORUS,
                 EffectType.FLANGER,
                 EffectType.PHASER,
-                EffectType.TREMOLO
+                EffectType.TREMOLO,
+                EffectType.DELAY,
+                EffectType.REVERB
             )
         }
 

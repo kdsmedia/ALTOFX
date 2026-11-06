@@ -19,6 +19,8 @@ add_library(altoguitarfx SHARED
         Flanger.cpp
         Phaser.cpp
         Tremolo.cpp
+        Delay.cpp
+        Reverb.cpp
 )
 
 find_library(log-lib log)
