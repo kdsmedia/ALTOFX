@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,8 +34,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.altomedia.altoguitarfx.audio.AudioController
 import com.altomedia.altoguitarfx.audio.AudioDeviceManager
+import com.altomedia.altoguitarfx.audio.NativeBridge
 import com.altomedia.altoguitarfx.data.ActivePresetStore
 import com.altomedia.altoguitarfx.data.PresetRepository
+import com.altomedia.altoguitarfx.effects.EffectController
+import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
@@ -186,6 +190,8 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                 }
             }
         }
+
+        PedalboardPanel(onNavigate = onNavigate)
 
         RoutingPanel(status = status, onStatus = { status = it })
 
@@ -419,6 +425,72 @@ private fun QuickDeviceRow(
                 fontSize = 13.sp
             )
             Text(text = detail, color = TextSecondary, fontSize = 11.sp)
+        }
+    }
+}
+
+/**
+ * Strip pedalboard ringkas di Home (blueprint bagian 6: 'Pedalboard dengan
+ * status ON/OFF dan kontrol parameter'). Menampilkan efek sesuai urutan
+ * pemrosesan nyata dari mesin DSP, dengan tombol ON/OFF yang langsung bekerja.
+ * Kontrol parameter ada di layar Effects.
+ */
+@Composable
+private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
+    // Urutan diambil dari mesin native agar cocok dengan yang diproses DSP.
+    fun readPedals(): List<Pair<EffectType, Boolean>> {
+        val count = NativeBridge.effectCount()
+        return (0 until count).mapNotNull { slot ->
+            val id = NativeBridge.effectOrderAt(slot)
+            val type = EffectType.values().firstOrNull { it.id == id } ?: return@mapNotNull null
+            type to EffectController.isEnabled(type)
+        }
+    }
+
+    var pedals by remember { mutableStateOf(readPedals()) }
+
+    PanelCard(
+        title = "Pedalboard",
+        modifier = Modifier.padding(top = 12.dp)
+    ) {
+        Text(
+            text = "Aktifkan/nonaktifkan efek. Ubah parameter di layar Effects.",
+            color = TextSecondary,
+            fontSize = 12.sp
+        )
+        pedals.chunked(2).forEach { rowItems ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowItems.forEach { (type, enabled) ->
+                    Column(modifier = Modifier.weight(1f)) {
+                        Switch(
+                            checked = enabled,
+                            onCheckedChange = {
+                                EffectController.setEnabled(type, it)
+                                pedals = readPedals()
+                            }
+                        )
+                        Text(
+                            text = type.label,
+                            color = if (enabled) Accent else TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                if (rowItems.size == 1) {
+                    Column(modifier = Modifier.weight(1f)) {}
+                }
+            }
+        }
+        OutlinedButton(
+            onClick = { onNavigate(Destination.EFFECTS) },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Atur Parameter")
         }
     }
 }
