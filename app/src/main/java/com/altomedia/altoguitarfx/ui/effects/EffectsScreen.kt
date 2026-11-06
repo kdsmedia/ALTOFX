@@ -36,9 +36,15 @@ fun EffectsScreen() {
         title = "Effects",
         subtitle = "Rangkaian efek gitar"
     ) {
-        // BAB 7: efek dinamika. Efek lain muncul saat BAB 8-11 selesai.
+        // BAB 7: efek dinamika. BAB 8: efek saturasi.
         val available = remember {
-            listOf(EffectType.NOISE_GATE, EffectType.COMPRESSOR)
+            listOf(
+                EffectType.NOISE_GATE,
+                EffectType.COMPRESSOR,
+                EffectType.OVERDRIVE,
+                EffectType.DISTORTION,
+                EffectType.FUZZ
+            )
         }
 
         available.forEach { type ->
@@ -47,8 +53,8 @@ fun EffectsScreen() {
 
         PanelCard(title = "Catatan") {
             Text(
-                text = "Efek lain (Drive, EQ, Modulation, Delay, Reverb) " +
-                    "ditambahkan pada BAB 8-11. Urutan efek tetap dan " +
+                text = "Efek lain (EQ, Modulation, Delay, Reverb) " +
+                    "ditambahkan pada BAB 9-11. Urutan efek tetap dan " +
                     "mengikuti alur sinyal pada rancangan.",
                 color = TextSecondary,
                 fontSize = 12.sp,

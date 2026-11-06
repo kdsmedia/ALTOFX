@@ -1,14 +1,22 @@
 #include "Effects.h"
 
 #include "Compressor.h"
+#include "DriveEffect.h"
 #include "NoiseGate.h"
 
 namespace alto {
 
 EffectChain::EffectChain() {
-    // BAB 7: efek dinamika. Efek lain diisi pada BAB 8-11.
+    // BAB 7: efek dinamika.
     effects_[static_cast<size_t>(EffectType::NoiseGate)] = std::make_unique<NoiseGate>();
     effects_[static_cast<size_t>(EffectType::Compressor)] = std::make_unique<Compressor>();
+    // BAB 8: efek saturasi/gain.
+    effects_[static_cast<size_t>(EffectType::Overdrive)] = std::make_unique<DriveEffect>(
+            "Overdrive", DriveEffect::Shape::SoftTanh, 30.0f);
+    effects_[static_cast<size_t>(EffectType::Distortion)] = std::make_unique<DriveEffect>(
+            "Distortion", DriveEffect::Shape::HardClip, 120.0f);
+    effects_[static_cast<size_t>(EffectType::Fuzz)] = std::make_unique<DriveEffect>(
+            "Fuzz", DriveEffect::Shape::Fuzz, 400.0f);
 }
 
 void EffectChain::prepare(double sampleRate, int32_t channels) {
