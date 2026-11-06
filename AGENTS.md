@@ -68,7 +68,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 13 — Sistem preset (bawaan + pengguna)
 - [x] BAB 14 — Tuner (deteksi pitch YIN, referensi A4)
 - [x] BAB 15 — Pengaturan audio, routing, lifecycle, error handling
-- [ ] BAB 16 — Optimasi performa & uji perangkat
+- [x] BAB 16 — Optimasi performa & pengukuran latensi
 - [ ] BAB 17 — Build release & signing APK
 
 ## Konvensi kode

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -128,6 +129,8 @@ fun SettingsScreen() {
 
         LevelPanel()
 
+        PerformancePanel()
+
         PanelCard(
             title = "Mesin Native",
             modifier = Modifier.padding(top = 12.dp)
@@ -199,6 +202,65 @@ private fun deviceDetail(sampleRates: List<Int>, channels: List<Int>): String {
         parts += "${channels.maxOrNull()} ch"
     }
     return parts.joinToString(" • ")
+}
+
+/**
+ * Panel performa & latensi (BAB 16): beban CPU callback, waktu eksekusi,
+ * kapasitas buffer, dan estimasi latensi round-trip dari buffer nyata.
+ */
+@Composable
+private fun PerformancePanel() {
+    var perf by remember { mutableStateOf(AudioController.performance()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            perf = AudioController.performance()
+            delay(200)
+        }
+    }
+
+    val loadPercent = (perf.averageCpuLoad * 100f)
+    val peakPercent = (perf.peakCpuLoad * 100f)
+    val overload = perf.peakCpuLoad > 0.8f
+
+    PanelCard(
+        title = "Performa & Latensi",
+        modifier = Modifier.padding(top = 12.dp)
+    ) {
+        Text(
+            text = "Beban callback diukur terhadap anggaran waktu satu blok. " +
+                "Nilai di bawah 80% umumnya aman dari drop-out.",
+            color = TextSecondary,
+            fontSize = 12.sp
+        )
+        Text(
+            text = "Beban rata-rata: ${"%.1f".format(loadPercent)}%\n" +
+                "Beban puncak: ${"%.1f".format(peakPercent)}%",
+            color = if (overload) Danger else TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+        Text(
+            text = "Callback rata-rata: ${"%.0f".format(perf.averageCallbackMicros)} us\n" +
+                "Callback puncak: ${"%.0f".format(perf.peakCallbackMicros)} us",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Text(
+            text = "Buffer: ${perf.bufferCapacityFrames} frame\n" +
+                "Estimasi latensi round-trip: ${"%.1f".format(perf.estimatedLatencyMs)} ms",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        OutlinedButton(
+            onClick = { AudioController.resetPerformance() },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Reset Statistik")
+        }
+    }
 }
 
 /**

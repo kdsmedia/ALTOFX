@@ -329,3 +329,47 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeClearLastError(JNIEnv *
                                                                        jobject /*thiz*/) {
     engine().clearLastError();
 }
+
+// ---- Performa & latensi (BAB 16) ----
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeAverageCallbackMicros(JNIEnv * /*env*/,
+                                                                              jobject /*thiz*/) {
+    return engine().performance().averageMicros();
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativePeakCallbackMicros(JNIEnv * /*env*/,
+                                                                           jobject /*thiz*/) {
+    return engine().performance().peakMicros();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeAverageCpuLoad(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/) {
+    return engine().performance().averageLoad();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativePeakCpuLoad(JNIEnv * /*env*/,
+                                                                    jobject /*thiz*/) {
+    return engine().performance().peakLoad();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEstimatedLatencyMs(JNIEnv * /*env*/,
+                                                                           jobject /*thiz*/) {
+    return engine().estimatedLatencyMs();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeBufferCapacityFrames(JNIEnv * /*env*/,
+                                                                             jobject /*thiz*/) {
+    return engine().bufferCapacityFrames();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetPerformance(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/) {
+    engine().performance().reset();
+}

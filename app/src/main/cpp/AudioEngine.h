@@ -11,6 +11,7 @@
 
 #include "Effects.h"
 #include "GainStage.h"
+#include "PerformanceMonitor.h"
 #include "PitchDetector.h"
 
 namespace alto {
@@ -69,6 +70,19 @@ public:
 
     /** Akses ke detektor pitch untuk tuner (BAB 14). */
     PitchDetector& pitch() { return pitch_; }
+
+    /** Pemantau performa callback (BAB 16). */
+    PerformanceMonitor& performance() { return performance_; }
+
+    /**
+     * Estimasi latensi round-trip (BAB 16) dalam milidetik, dihitung dari
+     * ukuran buffer input+output pada sample rate stream. Ini estimasi berbasis
+     * buffer nyata perangkat, bukan angka teoretis.
+     */
+    float estimatedLatencyMs() const;
+
+    /** Kapasitas buffer stream (frame), 0 bila belum dibuka. */
+    int32_t bufferCapacityFrames() const;
 
     /** Trim gain input (BAB 15), dalam desibel. */
     GainStage& inputGain() { return inputGain_; }
@@ -138,6 +152,7 @@ private:
     std::atomic<int64_t> framesProcessed_{0};
     EffectChain effects_;
     PitchDetector pitch_;
+    PerformanceMonitor performance_;
     GainStage inputGain_;
     GainStage outputGain_;
     std::atomic<bool> inputClipping_{false};

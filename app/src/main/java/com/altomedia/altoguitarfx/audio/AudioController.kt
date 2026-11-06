@@ -99,6 +99,28 @@ object AudioController {
         lastError = NativeBridge.lastError()
     )
 
+    // ---- Performa & latensi (BAB 16) ----
+
+    data class Performance(
+        val averageCallbackMicros: Double,
+        val peakCallbackMicros: Double,
+        val averageCpuLoad: Float,
+        val peakCpuLoad: Float,
+        val estimatedLatencyMs: Float,
+        val bufferCapacityFrames: Int
+    )
+
+    fun performance(): Performance = Performance(
+        averageCallbackMicros = NativeBridge.averageCallbackMicros(),
+        peakCallbackMicros = NativeBridge.peakCallbackMicros(),
+        averageCpuLoad = NativeBridge.averageCpuLoad(),
+        peakCpuLoad = NativeBridge.peakCpuLoad(),
+        estimatedLatencyMs = NativeBridge.estimatedLatencyMs(),
+        bufferCapacityFrames = NativeBridge.bufferCapacityFrames()
+    )
+
+    fun resetPerformance() = NativeBridge.resetPerformance()
+
     /** Data level & diagnostik untuk level meter (BAB 6). */
     data class MeterData(
         val inputLevel: Float,

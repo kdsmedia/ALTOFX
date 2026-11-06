@@ -169,6 +169,32 @@ object NativeBridge {
         if (isLoaded) nativeClearLastError()
     }
 
+    // ---- Performa & latensi (BAB 16) ----
+
+    /** Lama eksekusi callback rata-rata (mikrodetik). */
+    fun averageCallbackMicros(): Double =
+        if (isLoaded) nativeAverageCallbackMicros() else 0.0
+
+    /** Lama eksekusi callback puncak (mikrodetik). */
+    fun peakCallbackMicros(): Double = if (isLoaded) nativePeakCallbackMicros() else 0.0
+
+    /** Beban CPU rata-rata 0..1 relatif anggaran waktu blok. */
+    fun averageCpuLoad(): Float = if (isLoaded) nativeAverageCpuLoad() else 0f
+
+    /** Beban CPU puncak 0..1. */
+    fun peakCpuLoad(): Float = if (isLoaded) nativePeakCpuLoad() else 0f
+
+    /** Estimasi latensi round-trip (ms) dari buffer nyata perangkat. */
+    fun estimatedLatencyMs(): Float = if (isLoaded) nativeEstimatedLatencyMs() else 0f
+
+    /** Kapasitas buffer stream (frame). */
+    fun bufferCapacityFrames(): Int = if (isLoaded) nativeBufferCapacityFrames() else 0
+
+    /** Mengosongkan statistik performa. */
+    fun resetPerformance() {
+        if (isLoaded) nativeResetPerformance()
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -248,4 +274,18 @@ object NativeBridge {
     private external fun nativeLastError(): String
 
     private external fun nativeClearLastError()
+
+    private external fun nativeAverageCallbackMicros(): Double
+
+    private external fun nativePeakCallbackMicros(): Double
+
+    private external fun nativeAverageCpuLoad(): Float
+
+    private external fun nativePeakCpuLoad(): Float
+
+    private external fun nativeEstimatedLatencyMs(): Float
+
+    private external fun nativeBufferCapacityFrames(): Int
+
+    private external fun nativeResetPerformance()
 }

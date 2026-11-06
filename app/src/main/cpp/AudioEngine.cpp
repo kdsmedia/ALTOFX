@@ -1,5 +1,7 @@
 #include "AudioEngine.h"
 
+#include <chrono>
+
 #include <android/log.h>
 
 #define LOG_TAG "AltoAudio"
@@ -97,6 +99,8 @@ oboe::Result AudioEngine::openStreams() {
     // Siapkan tahap gain trim input dan level output master (BAB 15).
     inputGain_.prepare(outputStream_->getSampleRate());
     outputGain_.prepare(outputStream_->getSampleRate());
+    // Siapkan pemantau performa callback (BAB 16).
+    performance_.prepare(outputStream_->getSampleRate());
 
     sampleRate_.store(outputStream_->getSampleRate());
     channelCount_.store(outputStream_->getChannelCount());
@@ -152,6 +156,8 @@ std::string AudioEngine::stopAudio() {
 
 oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, int numInputFrames,
                                                         void *outputData, int numOutputFrames) {
+    // BAB 16: ukur lama eksekusi callback untuk memantau beban CPU real-time.
+    const auto callbackStart = std::chrono::steady_clock::now();
     // BAB 6: jalur audio nyata input -> output dengan pengukuran level.
     // Efek DSP ditambahkan pada BAB 7.
     const auto *input = static_cast<const float *>(inputData);
@@ -226,7 +232,35 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     callbackCount_.fetch_add(1);
     framesProcessed_.fetch_add(frames);
 
+    // BAB 16: catat durasi callback untuk statistik performa.
+    const auto callbackEnd = std::chrono::steady_clock::now();
+    const double micros =
+        std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
+            callbackEnd - callbackStart).count();
+    performance_.record(micros, frames);
+
     return oboe::DataCallbackResult::Continue;
+}
+
+float AudioEngine::estimatedLatencyMs() const {
+    const double rate = static_cast<double>(sampleRate_.load());
+    if (rate <= 0.0) {
+        return 0.0f;
+    }
+    // Latensi per arah kira-kira sebesar kapasitas buffer stream. Round-trip
+    // = input + output.
+    const int32_t capacity = bufferCapacityFrames();
+    if (capacity <= 0) {
+        return 0.0f;
+    }
+    return static_cast<float>((2.0 * capacity) / rate * 1000.0);
+}
+
+int32_t AudioEngine::bufferCapacityFrames() const {
+    if (outputStream_ != nullptr) {
+        return outputStream_->getBufferCapacityInFrames();
+    }
+    return 0;
 }
 
 int64_t AudioEngine::xrunCount() const {
