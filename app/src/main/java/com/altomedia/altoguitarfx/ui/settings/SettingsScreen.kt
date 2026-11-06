@@ -49,6 +49,16 @@ fun SettingsScreen() {
     var outputs by remember { mutableStateOf(manager.outputDevices()) }
     var selectedInput by remember { mutableStateOf(AudioController.selectedInputId()) }
     var selectedOutput by remember { mutableStateOf(AudioController.selectedOutputId()) }
+    var micGranted by remember {
+        mutableStateOf(
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, android.Manifest.permission.RECORD_AUDIO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> micGranted = granted }
 
     DisposableEffect(Unit) {
         val callback = manager.observe {
@@ -62,7 +72,33 @@ fun SettingsScreen() {
         title = "Settings",
         subtitle = "Perangkat dan performa audio"
     ) {
-        PanelCard(title = "Sumber Input") {
+        PanelCard(title = "Izin") {
+            Text(
+                text = "Izin mikrofon: " + if (micGranted) "diberikan" else "belum diberikan",
+                color = if (micGranted) Accent else Danger,
+                fontSize = 13.sp
+            )
+            Text(
+                text = "Diperlukan untuk menangkap sinyal gitar dari mikrofon " +
+                    "internal maupun audio interface USB (iRig).",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            if (!micGranted) {
+                OutlinedButton(
+                    onClick = { permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Minta Izin Mikrofon")
+                }
+            }
+        }
+
+        PanelCard(
+            title = "Sumber Input",
+            modifier = Modifier.padding(top = 12.dp)
+        ) {
             if (inputs.isEmpty()) {
                 Text(
                     text = "Tidak ada perangkat input terdeteksi.",
