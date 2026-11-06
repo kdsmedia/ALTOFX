@@ -69,3 +69,11 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeFramesPerBurst(JNIEnv *
                                                                         jobject /*thiz*/) {
     return engine().framesPerBurst();
 }
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetDeviceIds(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/,
+                                                                     jint inputDeviceId,
+                                                                     jint outputDeviceId) {
+    engine().setDeviceIds(inputDeviceId, outputDeviceId);
+}

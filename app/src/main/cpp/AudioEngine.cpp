@@ -26,6 +26,9 @@ std::string AudioEngine::version() const {
 }
 
 oboe::Result AudioEngine::openStreams() {
+    const int32_t outputDeviceId = outputDeviceId_.load();
+    const int32_t inputDeviceId = inputDeviceId_.load();
+
     // Output dibuka lebih dulu (rekomendasi Oboe untuk hasil terbaik).
     oboe::AudioStreamBuilder outputBuilder;
     outputBuilder.setDirection(oboe::Direction::Output)
@@ -37,6 +40,10 @@ oboe::Result AudioEngine::openStreams() {
             ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
             ->setDataCallback(this)
             ->setErrorCallback(this);
+    // -1 berarti perangkat default sistem.
+    if (outputDeviceId >= 0) {
+        outputBuilder.setDeviceId(outputDeviceId);
+    }
 
     oboe::Result result = outputBuilder.openStream(outputStream_);
     if (result != oboe::Result::OK) {
@@ -60,6 +67,9 @@ oboe::Result AudioEngine::openStreams() {
             // Buffer input dua kali kapasitas output agar tidak underrun.
             ->setBufferCapacityInFrames(outputStream_->getBufferCapacityInFrames() * 2)
             ->setErrorCallback(this);
+    if (inputDeviceId >= 0) {
+        inputBuilder.setDeviceId(inputDeviceId);
+    }
 
     result = inputBuilder.openStream(inputStream_);
     if (result != oboe::Result::OK) {

@@ -43,6 +43,16 @@ public:
 
     int32_t framesPerBurst() const { return framesPerBurst_.load(); }
 
+    /**
+     * Memilih perangkat input/output (BAB 5). ID berasal dari
+     * AudioDeviceInfo.id pada sisi Android. Nilai -1 berarti perangkat default
+     * sistem. Perubahan berlaku pada pembukaan stream berikutnya.
+     */
+    void setDeviceIds(int32_t inputDeviceId, int32_t outputDeviceId) {
+        inputDeviceId_.store(inputDeviceId);
+        outputDeviceId_.store(outputDeviceId);
+    }
+
     std::string version() const;
 
     // oboe::FullDuplexStream
@@ -61,6 +71,8 @@ private:
     std::atomic<int32_t> sampleRate_{0};
     std::atomic<int32_t> framesPerBurst_{0};
     std::atomic<int32_t> channelCount_{0};
+    std::atomic<int32_t> inputDeviceId_{-1};
+    std::atomic<int32_t> outputDeviceId_{-1};
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
 };
 

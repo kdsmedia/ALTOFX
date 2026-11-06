@@ -38,6 +38,14 @@ object NativeBridge {
     /** Jumlah frame per callback, 0 bila belum berjalan. */
     fun framesPerBurst(): Int = if (isLoaded) nativeFramesPerBurst() else 0
 
+    /**
+     * Memilih perangkat input/output (BAB 5). ID berasal dari
+     * AudioDeviceInfo.id; gunakan -1 untuk perangkat default sistem.
+     */
+    fun setDeviceIds(inputDeviceId: Int, outputDeviceId: Int) {
+        if (isLoaded) nativeSetDeviceIds(inputDeviceId, outputDeviceId)
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -51,4 +59,6 @@ object NativeBridge {
     private external fun nativeSampleRate(): Int
 
     private external fun nativeFramesPerBurst(): Int
+
+    private external fun nativeSetDeviceIds(inputDeviceId: Int, outputDeviceId: Int)
 }
