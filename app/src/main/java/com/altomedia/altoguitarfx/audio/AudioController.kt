@@ -1,5 +1,8 @@
 package com.altomedia.altoguitarfx.audio
 
+import android.content.Context
+import android.content.SharedPreferences
+
 /**
  * Kontrol audio tingkat aplikasi (BAB 4-5).
  *
@@ -24,13 +27,34 @@ object AudioController {
     private var inputDeviceId: Int = DEFAULT_DEVICE_ID
     private var outputDeviceId: Int = DEFAULT_DEVICE_ID
     private var preferredSampleRate: Int = DEFAULT_SAMPLE_RATE
+    private var prefs: SharedPreferences? = null
+
+    /**
+     * Memuat pilihan perangkat dan sample rate yang tersimpan (blueprint
+     * BAB 5/15). Dipanggil sekali dari MainActivity sebelum audio dipakai,
+     * sehingga pilihan pengguna bertahan setelah aplikasi ditutup.
+     */
+    fun init(context: Context) {
+        val store = context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs = store
+        inputDeviceId = store.getInt(KEY_INPUT_DEVICE, DEFAULT_DEVICE_ID)
+        outputDeviceId = store.getInt(KEY_OUTPUT_DEVICE, DEFAULT_DEVICE_ID)
+        preferredSampleRate =
+            store.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE).takeIf { it > 0 }
+                ?: DEFAULT_SAMPLE_RATE
+        NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
+        NativeBridge.setPreferredSampleRate(preferredSampleRate)
+    }
 
     fun selectInput(deviceId: Int) {
         inputDeviceId = deviceId
+        prefs?.edit()?.putInt(KEY_INPUT_DEVICE, deviceId)?.apply()
     }
 
     fun selectOutput(deviceId: Int) {
         outputDeviceId = deviceId
+        prefs?.edit()?.putInt(KEY_OUTPUT_DEVICE, deviceId)?.apply()
     }
 
     /**
@@ -39,6 +63,7 @@ object AudioController {
      */
     fun setPreferredSampleRate(sampleRate: Int): Status {
         preferredSampleRate = sampleRate
+        prefs?.edit()?.putInt(KEY_SAMPLE_RATE, sampleRate)?.apply()
         NativeBridge.setPreferredSampleRate(sampleRate)
         return if (NativeBridge.isRunning()) start() else refresh()
     }
@@ -223,6 +248,12 @@ object AudioController {
         framesProcessed = NativeBridge.framesProcessed(),
         xrunCount = NativeBridge.xrunCount()
     )
+
+    private const val PREFS_NAME = "alto_audio"
+    private const val KEY_INPUT_DEVICE = "input_device"
+    private const val KEY_OUTPUT_DEVICE = "output_device"
+    private const val KEY_SAMPLE_RATE = "sample_rate"
+
 
     private fun current(message: String): Status = Status(
         running = NativeBridge.isRunning(),

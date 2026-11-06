@@ -48,7 +48,11 @@ apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
 - [x] Audio callback bebas alokasi, lock blocking, dan I/O.
 - [x] Preset bawaan dan penyimpanan preset diuji.
 - [x] Build release ditandatangani dengan keystore aman.
-- [ ] Uji instalasi APK release pada perangkat Android target.
+- [ ] Uji instalasi APK release pada perangkat Android target. Jalankan
+      `bash scripts/verify_release.sh` pada mesin dengan perangkat/emulator
+      terhubung untuk memverifikasi tanda tangan, label, instalasi, dan
+      ketiadaan crash saat buka/tutup.
+- [x] Latensi round-trip diukur dari timestamp Oboe (bukan angka teoretis).
 
 ## Kompatibilitas interface audio
 

@@ -41,6 +41,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // BAB 5/15: pulihkan pilihan perangkat & sample rate sebelum dipakai.
+        AudioController.init(this)
+
         // BAB 15: tangani audio focus dan lifecycle. Audio dijeda saat aplikasi
         // masuk background atau kehilangan focus, lalu dilanjutkan kembali.
         audioFocus.setListener { event ->

@@ -105,6 +105,9 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
   menjalankan seluruh suite dengan AddressSanitizer + UndefinedBehaviorSanitizer.
   Selalu jalankan ini setelah mengubah kode buffer/index DSP.
+- Pilihan perangkat & sample rate disimpan di SharedPreferences lewat
+  `AudioController.init(context)` (dipanggil dari MainActivity.onCreate). Jangan
+  menghapus panggilan init; tanpa itu pilihan tidak bertahan antar sesi.
 - Latensi terukur (BAB 16): `AudioEngine::measuredLatencyMs` memakai timestamp
   Oboe (`getTimestamp`) + `LatencyMath.h::roundTripLatencyMs`; nilai negatif
   berarti perangkat tidak melaporkan timestamp yang dapat dipercaya. Panel
