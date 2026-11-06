@@ -1,5 +1,7 @@
 #include "Effects.h"
 
+#include <algorithm>
+
 #include "Chorus.h"
 #include "Compressor.h"
 #include "Delay.h"
@@ -34,6 +36,65 @@ EffectChain::EffectChain() {
     // BAB 11: efek ruang/waktu.
     effects_[static_cast<size_t>(EffectType::Delay)] = std::make_unique<Delay>();
     effects_[static_cast<size_t>(EffectType::Reverb)] = std::make_unique<Reverb>();
+
+    resetOrder();
+}
+
+uint64_t EffectChain::encode(const std::array<EffectType, kEffectCount>& order) {
+    uint64_t code = 0;
+    for (int i = 0; i < kEffectCount; ++i) {
+        code |= static_cast<uint64_t>(static_cast<uint8_t>(order[static_cast<size_t>(i)]))
+                << (4 * i);
+    }
+    return code;
+}
+
+std::array<EffectType, EffectChain::kEffectCount> EffectChain::decode(uint64_t code) {
+    std::array<EffectType, kEffectCount> order{};
+    for (int i = 0; i < kEffectCount; ++i) {
+        const auto value = static_cast<uint8_t>((code >> (4 * i)) & 0xF);
+        // Nilai di luar rentang diperlakukan sebagai efek pertama (aman).
+        order[static_cast<size_t>(i)] = (value < static_cast<uint8_t>(EffectType::Count))
+                                                ? static_cast<EffectType>(value)
+                                                : EffectType::NoiseGate;
+    }
+    return order;
+}
+
+std::array<EffectType, EffectChain::kEffectCount> EffectChain::order() const {
+    return decode(orderCode_.load());
+}
+
+void EffectChain::setOrder(const std::array<EffectType, kEffectCount>& order) {
+    orderCode_.store(encode(order));
+}
+
+void EffectChain::moveEffect(EffectType type, int delta) {
+    auto current = order();
+    int from = -1;
+    for (int i = 0; i < kEffectCount; ++i) {
+        if (current[static_cast<size_t>(i)] == type) {
+            from = i;
+            break;
+        }
+    }
+    if (from < 0) {
+        return;
+    }
+    const int to = from + delta;
+    if (to < 0 || to >= kEffectCount) {
+        return;
+    }
+    std::swap(current[static_cast<size_t>(from)], current[static_cast<size_t>(to)]);
+    orderCode_.store(encode(current));
+}
+
+void EffectChain::resetOrder() {
+    std::array<EffectType, kEffectCount> order{};
+    for (int i = 0; i < kEffectCount; ++i) {
+        order[static_cast<size_t>(i)] = static_cast<EffectType>(i);
+    }
+    orderCode_.store(encode(order));
 }
 
 void EffectChain::prepare(double sampleRate, int32_t channels) {
@@ -45,9 +106,11 @@ void EffectChain::prepare(double sampleRate, int32_t channels) {
 }
 
 void EffectChain::process(float* buffer, int32_t frames, int32_t channels) {
-    for (auto& effect : effects_) {
-        if (effect != nullptr && effect->isEnabled()) {
-            effect->process(buffer, frames, channels);
+    const auto current = decode(orderCode_.load());
+    for (const auto type : current) {
+        Effect* e = effect(type);
+        if (e != nullptr && e->isEnabled()) {
+            e->process(buffer, frames, channels);
         }
     }
 }

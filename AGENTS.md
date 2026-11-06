@@ -64,7 +64,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 9 — Equalizer (bass/mid/treble, biquad RBJ)
 - [x] BAB 10 — Chorus, Flanger, Phaser, Tremolo (modulasi)
 - [x] BAB 11 — Delay & Reverb (ruang/waktu)
-- [ ] BAB 12 — Pengelola urutan efek & parameter
+- [x] BAB 12 — Pengelola urutan efek & parameter (order dapat diubah)
 - [ ] BAB 13 — Sistem preset
 - [ ] BAB 14 — Tuner
 - [ ] BAB 15 — Pengaturan audio, routing, lifecycle, error handling

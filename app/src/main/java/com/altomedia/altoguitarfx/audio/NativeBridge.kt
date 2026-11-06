@@ -82,6 +82,24 @@ object NativeBridge {
     fun effectName(type: Int): String =
         if (isLoaded) nativeEffectName(type) else ""
 
+    // ---- Pengelola urutan efek (BAB 12) ----
+
+    /** Jumlah efek dalam rangkaian. */
+    fun effectCount(): Int = if (isLoaded) nativeEffectCount() else 0
+
+    /** ID efek pada slot urutan tertentu, -1 bila slot tidak valid. */
+    fun effectOrderAt(slot: Int): Int = if (isLoaded) nativeEffectOrderAt(slot) else -1
+
+    /** Menggeser efek pada urutan: delta negatif naik, positif turun. */
+    fun moveEffect(type: Int, delta: Int) {
+        if (isLoaded) nativeMoveEffect(type, delta)
+    }
+
+    /** Mengembalikan urutan efek ke bawaan. */
+    fun resetEffectOrder() {
+        if (isLoaded) nativeResetEffectOrder()
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -119,4 +137,12 @@ object NativeBridge {
     private external fun nativeEffectParamCount(type: Int): Int
 
     private external fun nativeEffectName(type: Int): String
+
+    private external fun nativeEffectCount(): Int
+
+    private external fun nativeEffectOrderAt(slot: Int): Int
+
+    private external fun nativeMoveEffect(type: Int, delta: Int)
+
+    private external fun nativeResetEffectOrder()
 }

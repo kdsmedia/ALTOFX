@@ -156,3 +156,36 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectName(JNIEnv *env,
                                                                     jint type) {
     return env->NewStringUTF(engine().effects().name(static_cast<alto::EffectType>(type)));
 }
+
+// ---- Pengelola urutan efek (BAB 12) ----
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectCount(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/) {
+    return alto::EffectChain::kEffectCount;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectOrderAt(JNIEnv * /*env*/,
+                                                                      jobject /*thiz*/,
+                                                                      jint slot) {
+    const auto order = engine().effects().order();
+    if (slot < 0 || slot >= alto::EffectChain::kEffectCount) {
+        return -1;
+    }
+    return static_cast<jint>(order[static_cast<size_t>(slot)]);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeMoveEffect(JNIEnv * /*env*/,
+                                                                   jobject /*thiz*/,
+                                                                   jint type,
+                                                                   jint delta) {
+    engine().effects().moveEffect(static_cast<alto::EffectType>(type), delta);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetEffectOrder(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/) {
+    engine().effects().resetOrder();
+}

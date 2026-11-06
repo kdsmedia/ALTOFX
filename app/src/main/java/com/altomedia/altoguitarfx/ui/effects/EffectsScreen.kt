@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.altomedia.altoguitarfx.audio.NativeBridge
 import com.altomedia.altoguitarfx.effects.EffectController
 import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.effects.ParamSpec
@@ -27,8 +30,9 @@ import com.altomedia.altoguitarfx.ui.theme.Accent
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 
 /**
- * Effects (BAB 7). Menampilkan pedal efek dengan tombol ON/OFF dan kontrol
- * parameter yang benar-benar terhubung ke mesin DSP native.
+ * Effects (BAB 7-12). Menampilkan pedal efek dengan tombol ON/OFF, kontrol
+ * parameter, dan pengatur urutan (naik/turun) yang benar-benar mengubah
+ * urutan pemrosesan di mesin DSP native.
  */
 @Composable
 fun EffectsScreen() {
@@ -36,44 +40,60 @@ fun EffectsScreen() {
         title = "Effects",
         subtitle = "Rangkaian efek gitar"
     ) {
-        // BAB 7: efek dinamika. BAB 8: efek saturasi.
-        val available = remember {
-            listOf(
-                EffectType.NOISE_GATE,
-                EffectType.COMPRESSOR,
-                EffectType.OVERDRIVE,
-                EffectType.DISTORTION,
-                EffectType.FUZZ,
-                EffectType.EQUALIZER,
-                EffectType.CHORUS,
-                EffectType.FLANGER,
-                EffectType.PHASER,
-                EffectType.TREMOLO,
-                EffectType.DELAY,
-                EffectType.REVERB
-            )
-        }
+        // Urutan diambil dari mesin native sehingga UI selalu menampilkan
+        // urutan pemrosesan yang sebenarnya.
+        var order by remember { mutableStateOf(readOrder()) }
 
-        available.forEach { type ->
-            EffectPanel(type = type, modifier = Modifier.padding(bottom = 12.dp))
-        }
-
-        PanelCard(title = "Catatan") {
+        PanelCard(title = "Urutan Efek") {
             Text(
-                text = "Efek lain (EQ, Modulation, Delay, Reverb) " +
-                    "ditambahkan pada BAB 9-11. Urutan efek tetap dan " +
-                    "mengikuti alur sinyal pada rancangan.",
+                text = "Geser efek dengan tombol ▲/▼ untuk mengubah urutan " +
+                    "pemrosesan. Perubahan langsung diterapkan ke DSP.",
                 color = TextSecondary,
-                fontSize = 12.sp,
+                fontSize = 12.sp
+            )
+            TextButton(
+                onClick = {
+                    NativeBridge.resetEffectOrder()
+                    order = readOrder()
+                },
                 modifier = Modifier.padding(top = 4.dp)
+            ) {
+                Text("Kembalikan urutan bawaan")
+            }
+        }
+
+        order.forEachIndexed { position, type ->
+            EffectPanel(
+                type = type,
+                position = position,
+                total = order.size,
+                onMove = { delta ->
+                    NativeBridge.moveEffect(type.id, delta)
+                    order = readOrder()
+                },
+                modifier = Modifier.padding(bottom = 12.dp)
             )
         }
     }
 }
 
-/** Satu panel pedal: judul, tombol ON/OFF, dan slider tiap parameter. */
+/** Membaca urutan efek dari mesin native. */
+private fun readOrder(): List<EffectType> {
+    val count = NativeBridge.effectCount()
+    return (0 until count).mapNotNull { slot ->
+        EffectType.values().firstOrNull { it.id == NativeBridge.effectOrderAt(slot) }
+    }
+}
+
+/** Satu panel pedal: judul, tombol ON/OFF, kontrol urutan, dan slider. */
 @Composable
-private fun EffectPanel(type: EffectType, modifier: Modifier = Modifier) {
+private fun EffectPanel(
+    type: EffectType,
+    position: Int,
+    total: Int,
+    onMove: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var enabled by remember { mutableStateOf(EffectController.isEnabled(type)) }
     // Nilai awal diambil dari mesin native agar UI konsisten dengan DSP.
     var values by remember {
@@ -93,13 +113,33 @@ private fun EffectPanel(type: EffectType, modifier: Modifier = Modifier) {
                 color = if (enabled) Accent else TextSecondary,
                 fontSize = 13.sp
             )
-            Switch(
-                checked = enabled,
-                onCheckedChange = { checked ->
-                    enabled = checked
-                    EffectController.setEnabled(type, checked)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "${position + 1}/$total",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                IconButton(
+                    onClick = { onMove(-1) },
+                    enabled = position > 0
+                ) {
+                    Text("▲", fontSize = 14.sp)
                 }
-            )
+                IconButton(
+                    onClick = { onMove(1) },
+                    enabled = position < total - 1
+                ) {
+                    Text("▼", fontSize = 14.sp)
+                }
+                Switch(
+                    checked = enabled,
+                    onCheckedChange = { checked ->
+                        enabled = checked
+                        EffectController.setEnabled(type, checked)
+                    }
+                )
+            }
         }
 
         type.params.forEachIndexed { index, spec ->
