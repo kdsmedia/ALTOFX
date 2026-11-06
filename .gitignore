@@ -16,3 +16,9 @@ app/build/
 # BAB 17: kredensial signing release tidak masuk version control.
 keystore.properties
 *.jks
+
+# Artefak rilis yang sengaja di-commit (APK/AAB + checksum).
+!artifacts/
+!artifacts/*.apk
+!artifacts/*.aab
+!artifacts/SHA256SUMS.txt

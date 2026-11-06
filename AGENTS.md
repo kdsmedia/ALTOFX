@@ -105,6 +105,10 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
     menyetel ulang keadaan, stabil pada 96 kHz, dan `EffectType.kt` sinkron
     dengan DSP C++ (id/label/jumlah parameter). Jalankan suite ini setelah
     menambah/mengubah efek atau parameter.
+- Build artefak rilis: `./gradlew assembleDebug assembleRelease bundleRelease`
+  lalu `bash scripts/collect_artifacts.sh` (menyalin APK debug/release + AAB ke
+  `artifacts/` dan menulis `artifacts/SHA256SUMS.txt`). Artefak ini SENGAJA
+  di-commit (lihat pengecualian di `.gitignore`).
 - Verifikasi rilis (butuh perangkat/emulator): `bash scripts/verify_release.sh`
   (tidak tersedia di container ini karena tanpa KVM/emulator).
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
@@ -134,7 +138,10 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   mengubah urutan enum tanpa memperbarui kedua sisi.
 - Parameter DSP diubah dari UI lewat atomik; jangan menyentuh objek DSP dari dua thread.
 - Preset disimpan sebagai JSON di SharedPreferences (`PresetRepository`).
-- `keystore.properties` dan `*.jks` tidak boleh di-commit.
+- `keystore.properties` dan `*.jks` tidak boleh di-commit. APK/AAB di
+  `artifacts/` justru WAJIB di-commit setiap kali build (permintaan proyek).
+- README.md adalah dokumentasi publik proyek; perbarui bila fitur/perintah
+  berubah, dan commit bersama artefak.
 - Perubahan parameter yang bisa mendadak (mis. memuat preset) WAJIB dihaluskan
   per sampel lewat `SmoothedParam`; uji `eq_test` memuat kasus 'Preset jump'.
 - Mute master ada di `GainStage` (target efektif 0 dengan perataan); bypass
