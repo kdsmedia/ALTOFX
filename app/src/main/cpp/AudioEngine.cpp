@@ -99,6 +99,8 @@ oboe::Result AudioEngine::openStreams() {
     // Siapkan tahap gain trim input dan level output master (BAB 15).
     inputGain_.prepare(outputStream_->getSampleRate());
     outputGain_.prepare(outputStream_->getSampleRate());
+    duckGain_.prepare(outputStream_->getSampleRate(), 30.0f);
+    duckGain_.setTargetDb(ducked_.load() ? kDuckDb : 0.0f);
     // Siapkan pemantau performa callback (BAB 16).
     performance_.prepare(outputStream_->getSampleRate());
 
@@ -206,6 +208,9 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // Level output master + limiter (BAB 15). Limiter membatasi puncak ke
     // batas yang ditetapkan sehingga mencegah clipping keras di perangkat.
     outputGain_.process(output, frames, outChannels);
+    // Ducking audio focus (BAB 15): level diturunkan sementara bila aplikasi
+    // lain butuh perhatian, dengan perataan agar tidak menimbulkan klik.
+    duckGain_.process(output, frames, outChannels);
     const float ceiling = GainStage::dbToLinear(limiterCeilingDb_.load());
     float outputPeak = 0.0f;
     bool outputClip = false;

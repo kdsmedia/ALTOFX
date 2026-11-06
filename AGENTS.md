@@ -110,3 +110,6 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   keseluruhan ada di `EffectChain` (meneruskan sinyal dry apa adanya).
 - Perangkat aktif yang dicabut ditangani di `MainActivity` (AudioDeviceCallback)
   lewat `AudioController.handleInputDisconnected/handleOutputDisconnected`.
+- Audio focus: `LOSS_TRANSIENT_CAN_DUCK` -> `Event.DUCK` (turun -12 dB lewat
+  `duckGain_` di engine, berperataan), `GAIN` -> `Event.UNDUCK` lalu `Event.GAIN`.
+  Jangan memetakan duck ke resume/pause.

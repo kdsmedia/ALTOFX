@@ -96,6 +96,18 @@ public:
     /** true bila output terdeteksi terpotong pada blok terakhir. */
     bool outputClipping() const { return outputClipping_.load(); }
 
+    /**
+     * Ducking (BAB 15): menurunkan level keluaran sementara saat audio focus
+     * sementara hilang tetapi aplikasi masih boleh berbunyi. Perubahan
+     * dihaluskan lewat [GainStage] agar tidak menimbulkan klik.
+     */
+    void setDucked(bool ducked) {
+        ducked_.store(ducked);
+        duckGain_.setTargetDb(ducked ? kDuckDb : 0.0f);
+    }
+
+    bool ducked() const { return ducked_.load(); }
+
     /** Batas atas level keluaran (limiter) dalam desibel, default 0 dBFS. */
     void setLimiterCeilingDb(float db) { limiterCeilingDb_.store(db); }
 
@@ -158,6 +170,9 @@ private:
     std::atomic<bool> inputClipping_{false};
     std::atomic<bool> outputClipping_{false};
     std::atomic<float> limiterCeilingDb_{0.0f};
+    std::atomic<bool> ducked_{false};
+    GainStage duckGain_;
+    static constexpr float kDuckDb = -12.0f;
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
     mutable std::mutex errorLock_;
     std::string lastError_;

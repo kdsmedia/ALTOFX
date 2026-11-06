@@ -17,7 +17,7 @@ import android.os.Build
 class AudioFocusController(context: Context) {
 
     /** Reaksi yang harus diambil pemanggil terhadap perubahan focus. */
-    enum class Event { GAIN, LOSS, LOSS_TRANSIENT, GAIN_TRANSIENT }
+    enum class Event { GAIN, LOSS, LOSS_TRANSIENT, DUCK, UNDUCK }
 
     private val audioManager =
         context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -30,6 +30,7 @@ class AudioFocusController(context: Context) {
         when (change) {
             AudioManager.AUDIOFOCUS_GAIN -> {
                 hasFocus = true
+                listener?.invoke(Event.UNDUCK)
                 listener?.invoke(Event.GAIN)
             }
             AudioManager.AUDIOFOCUS_LOSS -> {
@@ -41,7 +42,9 @@ class AudioFocusController(context: Context) {
                 listener?.invoke(Event.LOSS_TRANSIENT)
             }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                listener?.invoke(Event.GAIN_TRANSIENT)
+                // Focus sementara hilang tetapi kita boleh tetap berbunyi dengan
+                // level lebih rendah (ducking), bukan dijeda.
+                listener?.invoke(Event.DUCK)
             }
         }
     }

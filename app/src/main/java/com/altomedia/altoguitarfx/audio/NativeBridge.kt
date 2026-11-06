@@ -195,6 +195,15 @@ object NativeBridge {
         if (isLoaded) nativeResetPerformance()
     }
 
+    // ---- Ducking audio focus (BAB 15) ----
+
+    /** Menurunkan level keluaran sementara saat audio focus sementara hilang. */
+    fun setDucked(ducked: Boolean) {
+        if (isLoaded) nativeSetDucked(ducked)
+    }
+
+    fun isDucked(): Boolean = isLoaded && nativeDucked()
+
     // ---- Mute & bypass keseluruhan (prinsip interaksi blueprint) ----
 
     /** Mute output master (meredup dengan perataan, tanpa klik). */
@@ -304,6 +313,10 @@ object NativeBridge {
     private external fun nativeBufferCapacityFrames(): Int
 
     private external fun nativeResetPerformance()
+
+    private external fun nativeSetDucked(ducked: Boolean)
+
+    private external fun nativeDucked(): Boolean
 
     private external fun nativeSetMuted(muted: Boolean)
 

@@ -45,9 +45,12 @@ class MainActivity : ComponentActivity() {
         // masuk background atau kehilangan focus, lalu dilanjutkan kembali.
         audioFocus.setListener { event ->
             when (event) {
-                AudioFocusController.Event.GAIN,
-                AudioFocusController.Event.GAIN_TRANSIENT ->
+                AudioFocusController.Event.GAIN ->
                     AudioController.resumeAfterInterruption()
+                AudioFocusController.Event.DUCK ->
+                    AudioController.setDucked(true)
+                AudioFocusController.Event.UNDUCK ->
+                    AudioController.setDucked(false)
                 AudioFocusController.Event.LOSS,
                 AudioFocusController.Event.LOSS_TRANSIENT ->
                     AudioController.pauseForInterruption()

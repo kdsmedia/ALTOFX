@@ -72,6 +72,14 @@ object AudioController {
         return if (NativeBridge.isRunning()) start() else refresh()
     }
 
+    /**
+     * Ducking: menurunkan level keluaran sementara saat audio focus sementara
+     * hilang tetapi aplikasi masih boleh berbunyi (BAB 15).
+     */
+    fun setDucked(ducked: Boolean) {
+        NativeBridge.setDucked(ducked)
+    }
+
     fun selectedInputId(): Int = inputDeviceId
 
     fun selectedOutputId(): Int = outputDeviceId

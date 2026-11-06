@@ -374,6 +374,21 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetPerformance(JNIEnv
     engine().performance().reset();
 }
 
+// ---- Ducking audio focus (BAB 15) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetDucked(JNIEnv * /*env*/,
+                                                                  jobject /*thiz*/,
+                                                                  jboolean ducked) {
+    engine().setDucked(ducked == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeDucked(JNIEnv * /*env*/,
+                                                               jobject /*thiz*/) {
+    return engine().ducked() ? JNI_TRUE : JNI_FALSE;
+}
+
 // ---- Mute & bypass keseluruhan (blueprint: prinsip interaksi) ----
 
 extern "C" JNIEXPORT void JNICALL
