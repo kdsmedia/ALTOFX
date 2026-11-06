@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.altomedia.altoguitarfx.audio.AudioController
+import com.altomedia.altoguitarfx.audio.AudioDeviceManager
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
@@ -44,10 +46,25 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
     var muted by remember { mutableStateOf(AudioController.isMuted()) }
     var bypassed by remember { mutableStateOf(AudioController.isGlobalBypass()) }
 
+    // Deteksi "tidak ada input" dan rekomendasi headphone (blueprint bagian 6).
+    val deviceManager = remember { AudioDeviceManager(context) }
+    var headphoneConnected by remember { mutableStateOf(deviceManager.hasHeadphone()) }
+    var silentFrames by remember { mutableStateOf(0) }
+
+    DisposableEffect(Unit) {
+        val callback = deviceManager.observe {
+            headphoneConnected = deviceManager.hasHeadphone()
+        }
+        onDispose { deviceManager.stopObserving(callback) }
+    }
+
     // Polling level dari engine native selama audio berjalan.
     LaunchedEffect(status.running) {
         while (status.running) {
             meter = AudioController.meter()
+            // Level < -60 dBFS dianggap sunyi. ~1 detik (20 x 50 ms) sunyi
+            // berurutan => tampilkan peringatan tidak ada input.
+            silentFrames = if (meter.inputLevel < 0.001f) silentFrames + 1 else 0
             delay(50)
         }
     }
@@ -119,6 +136,24 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
+                if (silentFrames >= 20) {
+                    Text(
+                        text = "Tidak ada sinyal input. Periksa kabel gitar/iRig " +
+                            "dan pastikan mikrofon tidak tertutup.",
+                        color = Danger,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                if (!headphoneConnected) {
+                    Text(
+                        text = "Disarankan memakai headphone untuk mencegah feedback, " +
+                            "terutama saat memakai mikrofon internal.",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                }
             }
 
             Row(

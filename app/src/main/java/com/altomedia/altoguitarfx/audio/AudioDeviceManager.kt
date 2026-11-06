@@ -63,6 +63,18 @@ class AudioDeviceManager(context: Context) {
         (inputDevices() + outputDevices()).any { it.isUsb }
 
     /**
+     * true bila headphone (kabel atau USB) terpasang. Dipakai untuk
+     * menyarankan headphone guna mencegah feedback (blueprint bagian 6).
+     */
+    fun hasHeadphone(): Boolean = outputDevices().any {
+        it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+            it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+            it.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+            it.type == AudioDeviceInfo.TYPE_USB_DEVICE ||
+            it.type == AudioDeviceInfo.TYPE_USB_ACCESSORY
+    }
+
+    /**
      * Memantau perubahan koneksi perangkat. [onChanged] dipanggil pada main
      * thread setiap perangkat ditambah/dilepas. Kembalikan callback yang sama
      * untuk dipakai pada [stopObserving].
