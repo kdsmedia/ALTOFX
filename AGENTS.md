@@ -62,7 +62,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 7 — Noise Gate & Compressor (dinamika, bypass, smoothing per sampel)
 - [x] BAB 8 — Overdrive, Distortion, Fuzz (saturasi ADAA, anti-aliasing)
 - [x] BAB 9 — Equalizer (bass/mid/treble, biquad RBJ)
-- [ ] BAB 10 — Chorus, Flanger, Phaser, Tremolo
+- [x] BAB 10 — Chorus, Flanger, Phaser, Tremolo (modulasi)
 - [ ] BAB 11 — Delay & Reverb
 - [ ] BAB 12 — Pengelola urutan efek & parameter
 - [ ] BAB 13 — Sistem preset

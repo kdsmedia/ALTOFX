@@ -15,6 +15,10 @@ add_library(altoguitarfx SHARED
         Compressor.cpp
         DriveEffect.cpp
         Equalizer.cpp
+        Chorus.cpp
+        Flanger.cpp
+        Phaser.cpp
+        Tremolo.cpp
 )
 
 find_library(log-lib log)

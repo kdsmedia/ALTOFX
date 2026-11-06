@@ -1,9 +1,13 @@
 #include "Effects.h"
 
+#include "Chorus.h"
 #include "Compressor.h"
 #include "DriveEffect.h"
 #include "Equalizer.h"
+#include "Flanger.h"
 #include "NoiseGate.h"
+#include "Phaser.h"
+#include "Tremolo.h"
 
 namespace alto {
 
@@ -20,6 +24,11 @@ EffectChain::EffectChain() {
             "Fuzz", DriveEffect::Shape::Fuzz, 400.0f);
     // BAB 9: equalizer 3-band.
     effects_[static_cast<size_t>(EffectType::Equalizer)] = std::make_unique<Equalizer>();
+    // BAB 10: efek modulasi.
+    effects_[static_cast<size_t>(EffectType::Chorus)] = std::make_unique<Chorus>();
+    effects_[static_cast<size_t>(EffectType::Flanger)] = std::make_unique<Flanger>();
+    effects_[static_cast<size_t>(EffectType::Phaser)] = std::make_unique<Phaser>();
+    effects_[static_cast<size_t>(EffectType::Tremolo)] = std::make_unique<Tremolo>();
 }
 
 void EffectChain::prepare(double sampleRate, int32_t channels) {

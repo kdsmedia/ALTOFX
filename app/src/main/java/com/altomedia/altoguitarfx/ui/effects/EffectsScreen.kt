@@ -44,7 +44,11 @@ fun EffectsScreen() {
                 EffectType.OVERDRIVE,
                 EffectType.DISTORTION,
                 EffectType.FUZZ,
-                EffectType.EQUALIZER
+                EffectType.EQUALIZER,
+                EffectType.CHORUS,
+                EffectType.FLANGER,
+                EffectType.PHASER,
+                EffectType.TREMOLO
             )
         }
 
