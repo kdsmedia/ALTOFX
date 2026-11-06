@@ -10,6 +10,9 @@ find_package(oboe REQUIRED CONFIG)
 add_library(altoguitarfx SHARED
         native-lib.cpp
         AudioEngine.cpp
+        Effects.cpp
+        NoiseGate.cpp
+        Compressor.cpp
 )
 
 find_library(log-lib log)

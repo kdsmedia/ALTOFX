@@ -59,7 +59,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 4 — Oboe, buka input/output stream (full-duplex, siap iRig/USB)
 - [x] BAB 5 — Pilih mikrofon internal & deteksi USB (daftar perangkat nyata + pemilihan)
 - [x] BAB 6 — Audio callback & level meter (peak input/output, xrun, diagnostik)
-- [ ] BAB 7 — Noise Gate & Compressor
+- [x] BAB 7 — Noise Gate & Compressor (dinamika, bypass, smoothing per sampel)
 - [ ] BAB 8 — Overdrive, Distortion, Fuzz
 - [ ] BAB 9 — Equalizer
 - [ ] BAB 10 — Chorus, Flanger, Phaser, Tremolo

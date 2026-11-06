@@ -107,3 +107,52 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeXrunCount(JNIEnv * /*en
                                                                    jobject /*thiz*/) {
     return engine().xrunCount();
 }
+
+// ---- Kontrol efek (BAB 7+) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetEffectEnabled(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/,
+                                                                         jint type,
+                                                                         jboolean enabled) {
+    engine().effects().setEnabled(static_cast<alto::EffectType>(type), enabled == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeIsEffectEnabled(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/,
+                                                                         jint type) {
+    return engine().effects().isEnabled(static_cast<alto::EffectType>(type)) ? JNI_TRUE
+                                                                             : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetEffectParam(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jint type,
+                                                                       jint index,
+                                                                       jfloat value) {
+    engine().effects().setParam(static_cast<alto::EffectType>(type), index, value);
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeGetEffectParam(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jint type,
+                                                                       jint index) {
+    return engine().effects().param(static_cast<alto::EffectType>(type), index);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectParamCount(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/,
+                                                                         jint type) {
+    return engine().effects().paramCount(static_cast<alto::EffectType>(type));
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectName(JNIEnv *env,
+                                                                    jobject /*thiz*/,
+                                                                    jint type) {
+    return env->NewStringUTF(engine().effects().name(static_cast<alto::EffectType>(type)));
+}

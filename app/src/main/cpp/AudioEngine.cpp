@@ -83,6 +83,9 @@ oboe::Result AudioEngine::openStreams() {
     setInputStream(inputStream_.get());
     setOutputStream(outputStream_.get());
 
+    // Siapkan efek sesuai sample rate dan kanal output (BAB 7).
+    effects_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
+
     sampleRate_.store(outputStream_->getSampleRate());
     channelCount_.store(outputStream_->getChannelCount());
     framesPerBurst_.store(outputStream_->getFramesPerBurst());
@@ -142,7 +145,6 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     int32_t frames = (numInputFrames < numOutputFrames) ? numInputFrames : numOutputFrames;
 
     float inputPeak = 0.0f;
-    float outputPeak = 0.0f;
     for (int32_t frame = 0; frame < frames; ++frame) {
         const float sample = input[frame * inChannels];
         const float magnitude = (sample < 0.0f) ? -sample : sample;
@@ -152,8 +154,20 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
         for (int32_t channel = 0; channel < outChannels; ++channel) {
             output[frame * outChannels + channel] = sample;
         }
-        if (magnitude > outputPeak) {
-            outputPeak = magnitude;
+    }
+
+    // BAB 7: jalankan rangkaian efek (Noise Gate, Compressor, ...) pada blok
+    // output. Hanya efek aktif yang diproses; tanpa alokasi atau lock.
+    effects_.process(output, frames, outChannels);
+
+    float outputPeak = 0.0f;
+    for (int32_t frame = 0; frame < frames; ++frame) {
+        for (int32_t channel = 0; channel < outChannels; ++channel) {
+            const float sample = output[frame * outChannels + channel];
+            const float magnitude = (sample < 0.0f) ? -sample : sample;
+            if (magnitude > outputPeak) {
+                outputPeak = magnitude;
+            }
         }
     }
 

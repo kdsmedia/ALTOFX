@@ -60,6 +60,28 @@ object NativeBridge {
 
     fun xrunCount(): Long = if (isLoaded) nativeXrunCount() else 0L
 
+    // ---- Kontrol efek (BAB 7+) ----
+
+    fun setEffectEnabled(type: Int, enabled: Boolean) {
+        if (isLoaded) nativeSetEffectEnabled(type, enabled)
+    }
+
+    fun isEffectEnabled(type: Int): Boolean =
+        if (isLoaded) nativeIsEffectEnabled(type) else false
+
+    fun setEffectParam(type: Int, index: Int, value: Float) {
+        if (isLoaded) nativeSetEffectParam(type, index, value)
+    }
+
+    fun effectParam(type: Int, index: Int): Float =
+        if (isLoaded) nativeGetEffectParam(type, index) else 0f
+
+    fun effectParamCount(type: Int): Int =
+        if (isLoaded) nativeEffectParamCount(type) else 0
+
+    fun effectName(type: Int): String =
+        if (isLoaded) nativeEffectName(type) else ""
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -85,4 +107,16 @@ object NativeBridge {
     private external fun nativeFramesProcessed(): Long
 
     private external fun nativeXrunCount(): Long
+
+    private external fun nativeSetEffectEnabled(type: Int, enabled: Boolean)
+
+    private external fun nativeIsEffectEnabled(type: Int): Boolean
+
+    private external fun nativeSetEffectParam(type: Int, index: Int, value: Float)
+
+    private external fun nativeGetEffectParam(type: Int, index: Int): Float
+
+    private external fun nativeEffectParamCount(type: Int): Int
+
+    private external fun nativeEffectName(type: Int): String
 }

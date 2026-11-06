@@ -9,6 +9,8 @@
 #include <mutex>
 #include <string>
 
+#include "Effects.h"
+
 namespace alto {
 
 /**
@@ -60,6 +62,9 @@ public:
     /** Jumlah kejadian underrun/overrun (xrun) yang dilaporkan Oboe. */
     int64_t xrunCount() const;
 
+    /** Akses ke rangkaian efek untuk pengaturan dari UI. */
+    EffectChain& effects() { return effects_; }
+
     /**
      * Memilih perangkat input/output (BAB 5). ID berasal dari
      * AudioDeviceInfo.id pada sisi Android. Nilai -1 berarti perangkat default
@@ -94,6 +99,7 @@ private:
     std::atomic<float> outputLevel_{0.0f};
     std::atomic<int64_t> callbackCount_{0};
     std::atomic<int64_t> framesProcessed_{0};
+    EffectChain effects_;
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
 };
 
