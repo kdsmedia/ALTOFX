@@ -14,6 +14,7 @@ add_library(altoguitarfx SHARED
         NoiseGate.cpp
         Compressor.cpp
         DriveEffect.cpp
+        Equalizer.cpp
 )
 
 find_library(log-lib log)

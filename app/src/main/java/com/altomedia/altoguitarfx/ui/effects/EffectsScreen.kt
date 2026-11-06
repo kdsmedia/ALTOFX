@@ -43,7 +43,8 @@ fun EffectsScreen() {
                 EffectType.COMPRESSOR,
                 EffectType.OVERDRIVE,
                 EffectType.DISTORTION,
-                EffectType.FUZZ
+                EffectType.FUZZ,
+                EffectType.EQUALIZER
             )
         }
 

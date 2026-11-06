@@ -2,6 +2,7 @@
 
 #include "Compressor.h"
 #include "DriveEffect.h"
+#include "Equalizer.h"
 #include "NoiseGate.h"
 
 namespace alto {
@@ -17,6 +18,8 @@ EffectChain::EffectChain() {
             "Distortion", DriveEffect::Shape::HardClip, 120.0f);
     effects_[static_cast<size_t>(EffectType::Fuzz)] = std::make_unique<DriveEffect>(
             "Fuzz", DriveEffect::Shape::Fuzz, 400.0f);
+    // BAB 9: equalizer 3-band.
+    effects_[static_cast<size_t>(EffectType::Equalizer)] = std::make_unique<Equalizer>();
 }
 
 void EffectChain::prepare(double sampleRate, int32_t channels) {

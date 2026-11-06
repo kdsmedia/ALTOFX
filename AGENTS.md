@@ -61,7 +61,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 6 — Audio callback & level meter (peak input/output, xrun, diagnostik)
 - [x] BAB 7 — Noise Gate & Compressor (dinamika, bypass, smoothing per sampel)
 - [x] BAB 8 — Overdrive, Distortion, Fuzz (saturasi ADAA, anti-aliasing)
-- [ ] BAB 9 — Equalizer
+- [x] BAB 9 — Equalizer (bass/mid/treble, biquad RBJ)
 - [ ] BAB 10 — Chorus, Flanger, Phaser, Tremolo
 - [ ] BAB 11 — Delay & Reverb
 - [ ] BAB 12 — Pengelola urutan efek & parameter
