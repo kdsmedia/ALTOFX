@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Arah visual BAB 6: tema gelap profesional, kontras tinggi. -->
+    <color name="black_bg">#FF0B0E11</color>
+    <color name="panel_bg">#FF15191E</color>
+    <color name="accent">#FF00E5A0</color>
+    <color name="accent_dark">#FF00996B</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
