@@ -53,6 +53,25 @@ object AudioController {
         return if (wasRunning) start() else refresh()
     }
 
+    /**
+     * Dipanggil saat perangkat input aktif dicabut (blueprint BAB 10 & 15:
+     * 'perangkat dilepas'). Bila audio berjalan, stream dihentikan dan
+     * dimulai ulang dengan perangkat bawaan agar suara tidak hilang diam-diam.
+     * Mengembalikan Status baru, atau null bila tidak ada yang perlu dilakukan.
+     */
+    fun handleInputDisconnected(deviceId: Int): Status? {
+        if (deviceId != inputDeviceId) return null
+        inputDeviceId = DEFAULT_DEVICE_ID
+        return if (NativeBridge.isRunning()) start() else refresh()
+    }
+
+    /** Lihat [handleInputDisconnected] untuk perangkat output. */
+    fun handleOutputDisconnected(deviceId: Int): Status? {
+        if (deviceId != outputDeviceId) return null
+        outputDeviceId = DEFAULT_DEVICE_ID
+        return if (NativeBridge.isRunning()) start() else refresh()
+    }
+
     fun selectedInputId(): Int = inputDeviceId
 
     fun selectedOutputId(): Int = outputDeviceId

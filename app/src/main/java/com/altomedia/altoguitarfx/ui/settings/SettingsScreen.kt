@@ -185,10 +185,61 @@ fun SettingsScreen() {
             title = "Tentang",
             modifier = Modifier.padding(top = 12.dp)
         ) {
+            // Versi sebenarnya dibaca dari PackageManager (bukan hardcode).
+            val packageInfo = remember {
+                runCatching {
+                    context.packageManager.getPackageInfo(context.packageName, 0)
+                }.getOrNull()
+            }
+            val versionName = packageInfo?.versionName ?: "-"
+            val versionCode = if (android.os.Build.VERSION.SDK_INT >= 28) {
+                packageInfo?.longVersionCode?.toString() ?: "-"
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo?.versionCode?.toString() ?: "-"
+            }
             Text(
-                text = "ALTO GUITAR FX • ALTOMEDIA\nVersi 1.0 (rancangan)",
+                text = "ALTO GUITAR FX • ALTOMEDIA",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.sp
+            )
+            Text(
+                text = "Versi $versionName ($versionCode) • ${context.packageName}",
                 color = TextSecondary,
-                fontSize = 13.sp
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+            Text(
+                text = "Real-time guitar multi-effects (NDK + Compose).",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+
+        PanelCard(
+            title = "Kompatibilitas & Rekomendasi",
+            modifier = Modifier.padding(top = 12.dp)
+        ) {
+            Text(
+                text = "• Input: mikrofon internal atau USB Audio Interface " +
+                    "(iRig). Satu input aktif pada versi ini.",
+                color = TextSecondary,
+                fontSize = 12.sp
+            )
+            Text(
+                text = "• Gunakan headphone untuk mencegah feedback, terutama " +
+                    "saat memakai mikrofon internal.",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Text(
+                text = "• Bila interface USB tidak terdeteksi, cabut dan pasang " +
+                    "ulang, lalu pilih kembali di panel Sumber Input.",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }

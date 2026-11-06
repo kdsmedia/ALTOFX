@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.altomedia.altoguitarfx.audio.AudioController
+import com.altomedia.altoguitarfx.audio.AudioDeviceManager
 import com.altomedia.altoguitarfx.audio.AudioFocusController
 import com.altomedia.altoguitarfx.navigation.AppNavigation
 import com.altomedia.altoguitarfx.navigation.Destination
@@ -33,6 +34,8 @@ import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 class MainActivity : ComponentActivity() {
 
     private val audioFocus by lazy { AudioFocusController(this) }
+    private val deviceManager by lazy { AudioDeviceManager(this) }
+    private var deviceCallback: android.media.AudioDeviceCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +53,26 @@ class MainActivity : ComponentActivity() {
                     AudioController.pauseForInterruption()
             }
         }
+        // BAB 10/15: bila perangkat aktif dicabut, mulai ulang dengan perangkat
+        // bawaan supaya audio tidak berhenti tanpa penjelasan.
+        val callback = deviceManager.observe {
+            AudioController.selectedInputId().let { id ->
+                if (id != AudioController.DEFAULT_DEVICE_ID &&
+                    deviceManager.inputDevices().none { it.id == id }
+                ) {
+                    AudioController.handleInputDisconnected(id)
+                }
+            }
+            AudioController.selectedOutputId().let { id ->
+                if (id != AudioController.DEFAULT_DEVICE_ID &&
+                    deviceManager.outputDevices().none { it.id == id }
+                ) {
+                    AudioController.handleOutputDisconnected(id)
+                }
+            }
+        }
+        deviceCallback = callback
+
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 if (audioFocus.request()) {
@@ -70,6 +93,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        deviceCallback?.let { deviceManager.stopObserving(it) }
+        deviceCallback = null
+        super.onDestroy()
     }
 }
 
