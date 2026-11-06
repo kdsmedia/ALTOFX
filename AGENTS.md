@@ -91,7 +91,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Build release (bertanda tangan): `./gradlew assembleRelease` (kredensial dari `keystore.properties`, lihat `RELEASE.md`)
 - Uji DSP di host (tanpa perangkat): `bash app/src/main/cpp/tests/run_tests.sh`
   - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf, level,
-    bypass, integration.
+    bypass, catalog, integration.
   - `integration_test`: 12 efek aktif sekaligus, blok 128 frame, bypass dry
     identik, mute halus, perubahan parameter & urutan saat berjalan, serta
     stabilitas 60 detik.
@@ -100,6 +100,11 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   - `bypass_test`: tiap efek mengubah suara saat aktif dan identik bit-per-bit
     saat bypass; plus kombinasi dua efek.
   - `space_test`: ditambah regresi `DelayLine` (indeks tidak keluar batas).
+  - `catalog_test`: kontrak katalog BAB 7 — nama & jumlah parameter tiap efek
+    sesuai blueprint, set/get parameter, setiap efek mengubah sinyal, reset
+    menyetel ulang keadaan, stabil pada 96 kHz, dan `EffectType.kt` sinkron
+    dengan DSP C++ (id/label/jumlah parameter). Jalankan suite ini setelah
+    menambah/mengubah efek atau parameter.
 - Verifikasi rilis (butuh perangkat/emulator): `bash scripts/verify_release.sh`
   (tidak tersedia di container ini karena tanpa KVM/emulator).
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
