@@ -95,6 +95,22 @@ int main() {
         pass += ok; total++;
     }
 
+
+    // setOrder: menerapkan permutasi lengkap sekaligus.
+    {
+        EffectChain chain;
+        std::array<EffectType, EffectChain::kEffectCount> target{};
+        for (int i = 0; i < EffectChain::kEffectCount; ++i)
+            target[i] = static_cast<EffectType>(EffectChain::kEffectCount - 1 - i);
+        chain.setOrder(target);
+        auto order = chain.order();
+        bool ok = true;
+        for (int i = 0; i < EffectChain::kEffectCount; ++i)
+            ok = ok && (order[i] == target[i]);
+        printf("setOrder permutasi terbalik diterapkan -> %s\n", ok ? "OK" : "GAGAL");
+        pass += ok; total++;
+    }
+
     printf("\nUrutan efek: %d/%d lolos\n", pass, total);
     return pass == total ? 0 : 1;
 }

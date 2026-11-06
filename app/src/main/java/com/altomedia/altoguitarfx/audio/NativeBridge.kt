@@ -100,6 +100,14 @@ object NativeBridge {
         if (isLoaded) nativeResetEffectOrder()
     }
 
+    /**
+     * Menetapkan urutan efek sekaligus. Larik harus memuat permutasi lengkap
+     * semua ID efek; nilai tidak valid diabaikan di sisi native.
+     */
+    fun setEffectOrder(order: IntArray) {
+        if (isLoaded) nativeSetEffectOrder(order)
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -145,4 +153,6 @@ object NativeBridge {
     private external fun nativeMoveEffect(type: Int, delta: Int)
 
     private external fun nativeResetEffectOrder()
+
+    private external fun nativeSetEffectOrder(order: IntArray)
 }

@@ -1,5 +1,6 @@
 #include <jni.h>
 
+#include <array>
 #include <string>
 
 #include "AudioEngine.h"
@@ -188,4 +189,38 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetEffectOrder(JNIEnv * /*env*/,
                                                                          jobject /*thiz*/) {
     engine().effects().resetOrder();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetEffectOrder(JNIEnv *env,
+                                                                       jobject /*thiz*/,
+                                                                       jintArray order) {
+    if (order == nullptr) {
+        return;
+    }
+    const jsize length = env->GetArrayLength(order);
+    jint values[alto::EffectChain::kEffectCount];
+    const jsize count = (length < alto::EffectChain::kEffectCount)
+                                ? length
+                                : alto::EffectChain::kEffectCount;
+    env->GetIntArrayRegion(order, 0, count, values);
+
+    std::array<alto::EffectType, alto::EffectChain::kEffectCount> target{};
+    for (int i = 0; i < alto::EffectChain::kEffectCount; ++i) {
+        target[static_cast<size_t>(i)] = static_cast<alto::EffectType>(i);
+    }
+    // Hanya terapkan bila larik memuat permutasi lengkap yang valid.
+    bool seen[alto::EffectChain::kEffectCount] = {};
+    for (int i = 0; i < count; ++i) {
+        const int value = values[i];
+        if (value < 0 || value >= alto::EffectChain::kEffectCount || seen[value]) {
+            return;
+        }
+        seen[value] = true;
+        target[static_cast<size_t>(i)] = static_cast<alto::EffectType>(value);
+    }
+    if (count != alto::EffectChain::kEffectCount) {
+        return;
+    }
+    engine().effects().setOrder(target);
 }

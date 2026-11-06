@@ -65,7 +65,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 10 — Chorus, Flanger, Phaser, Tremolo (modulasi)
 - [x] BAB 11 — Delay & Reverb (ruang/waktu)
 - [x] BAB 12 — Pengelola urutan efek & parameter (order dapat diubah)
-- [ ] BAB 13 — Sistem preset
+- [x] BAB 13 — Sistem preset (bawaan + pengguna)
 - [ ] BAB 14 — Tuner
 - [ ] BAB 15 — Pengaturan audio, routing, lifecycle, error handling
 - [ ] BAB 16 — Optimasi performa & uji perangkat
