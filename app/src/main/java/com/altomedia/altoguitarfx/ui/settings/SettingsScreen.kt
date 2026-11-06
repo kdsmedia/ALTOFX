@@ -383,11 +383,37 @@ private fun PerformancePanel() {
             modifier = Modifier.padding(top = 4.dp)
         )
         Text(
-            text = "Buffer: ${perf.bufferCapacityFrames} frame\n" +
-                "Estimasi latensi round-trip: ${"%.1f".format(perf.estimatedLatencyMs)} ms",
+            text = "Buffer: ${perf.bufferCapacityFrames} frame",
             color = TextSecondary,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 4.dp)
+        )
+        val measured = perf.measuredLatencyMs
+        Text(
+            text = if (measured >= 0f)
+                "Latensi terukur (timestamp perangkat): " +
+                    "${"%.1f".format(measured)} ms"
+            else
+                "Latensi terukur: perangkat ini tidak melaporkan timestamp " +
+                    "yang dapat dipercaya.",
+            color = if (measured >= 0f) Accent else TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Text(
+            text = "Estimasi dari ukuran buffer: " +
+                "${"%.1f".format(perf.estimatedLatencyMs)} ms (perkiraan, bukan " +
+                "hasil pengukuran).",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        Text(
+            text = "Latensi terukur dihitung dari timestamp Oboe saat audio " +
+                "berjalan; pastikan stream aktif agar nilainya muncul.",
+            color = TextSecondary,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 2.dp)
         )
         OutlinedButton(
             onClick = { AudioController.resetPerformance() },

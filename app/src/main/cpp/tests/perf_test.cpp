@@ -1,3 +1,4 @@
+#include "LatencyMath.h"
 #include "PerformanceMonitor.h"
 #include <cstdio>
 #include <cmath>
@@ -60,6 +61,25 @@ int main() {
         printf("Sample rate: load48=%.2f load96=%.2f -> %s\n",
                a.averageLoad(), b.averageLoad(), ok?"OK":"GAGAL");
         pass += ok; total++;
+    }
+
+    // Latensi terukur dari timestamp perangkat (BAB 16).
+    {
+        // 48 frame output belum diputar + 48 frame input belum dikonsumsi
+        // pada 48 kHz -> 2 ms round-trip.
+        double ms = roundTripLatencyMs(48000.0, 1048, 1000, 2048, 2000);
+        bool ok = std::fabs(ms - 2.0) < 1e-6;
+        printf("Latensi terukur 96 frame @48k = %.3f ms -> %s\n",
+               ms, ok ? "OK" : "GAGAL");
+        pass += ok; total++;
+
+        // Data tidak masuk akal -> -1 (ditampilkan sebagai 'tidak tersedia').
+        bool bad1 = roundTripLatencyMs(48000.0, 1000, 1048, 2000, 2048) < 0.0;
+        bool bad2 = roundTripLatencyMs(0.0, 1000, 1000, 2000, 2000) < 0.0;
+        bool bad3 = roundTripLatencyMs(48000.0, 1000, 1000, 2000, 2000 + 48000 * 5) < 0.0;
+        bool ok2 = bad1 && bad2 && bad3;
+        printf("Latensi tidak valid ditolak -> %s\n", ok2 ? "OK" : "GAGAL");
+        pass += ok2; total++;
     }
 
     printf("\nPerforma: %d/%d lolos\n", pass, total);

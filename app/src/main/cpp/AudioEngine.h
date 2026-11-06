@@ -81,6 +81,14 @@ public:
      */
     float estimatedLatencyMs() const;
 
+    /**
+     * Latensi round-trip TERUKUR (BAB 16) dalam milidetik, dihitung dari
+     * timestamp perangkat yang dilaporkan Oboe (posisi frame yang sudah
+     * ditulis/dibaca versus yang sudah diputar/ditangkap). Mengembalikan nilai
+     * negatif bila perangkat tidak menyediakan timestamp yang dapat dipercaya.
+     */
+    float measuredLatencyMs() const;
+
     /** Kapasitas buffer stream (frame), 0 bila belum dibuka. */
     int32_t bufferCapacityFrames() const;
 

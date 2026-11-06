@@ -369,6 +369,12 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativePeakCpuLoad(JNIEnv * /*
 }
 
 extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeMeasuredLatencyMs(
+        JNIEnv * /*env*/, jobject /*thiz*/) {
+    return engine().measuredLatencyMs();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
 Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEstimatedLatencyMs(JNIEnv * /*env*/,
                                                                            jobject /*thiz*/) {
     return engine().estimatedLatencyMs();

@@ -181,6 +181,7 @@ object AudioController {
         val averageCpuLoad: Float,
         val peakCpuLoad: Float,
         val estimatedLatencyMs: Float,
+        val measuredLatencyMs: Float,
         val bufferCapacityFrames: Int
     )
 
@@ -190,6 +191,7 @@ object AudioController {
         averageCpuLoad = NativeBridge.averageCpuLoad(),
         peakCpuLoad = NativeBridge.peakCpuLoad(),
         estimatedLatencyMs = NativeBridge.estimatedLatencyMs(),
+        measuredLatencyMs = NativeBridge.measuredLatencyMs(),
         bufferCapacityFrames = NativeBridge.bufferCapacityFrames()
     )
 

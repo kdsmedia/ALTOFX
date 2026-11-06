@@ -1,4 +1,5 @@
 #include "AudioEngine.h"
+#include "LatencyMath.h"
 
 #include <chrono>
 
@@ -244,6 +245,38 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     performance_.record(micros, frames);
 
     return oboe::DataCallbackResult::Continue;
+}
+
+float AudioEngine::measuredLatencyMs() const {
+    if (outputStream_ == nullptr) {
+        return -1.0f;
+    }
+    const double rate = static_cast<double>(sampleRate_.load());
+    if (rate <= 0.0) {
+        return -1.0f;
+    }
+    int64_t outputPos = 0;
+    int64_t outputTime = 0;
+    const auto outputResult = outputStream_->getTimestamp(
+            CLOCK_MONOTONIC, &outputPos, &outputTime);
+    if (outputResult != oboe::Result::OK) {
+        return -1.0f;
+    }
+    int64_t inputPos = 0;
+    int64_t inputTime = 0;
+    if (inputStream_ == nullptr) {
+        return -1.0f;
+    }
+    const auto inputResult = inputStream_->getTimestamp(
+            CLOCK_MONOTONIC, &inputPos, &inputTime);
+    if (inputResult != oboe::Result::OK) {
+        return -1.0f;
+    }
+    const double ms = roundTripLatencyMs(
+            rate,
+            outputStream_->getFramesWritten(), outputPos,
+            inputStream_->getFramesRead(), inputPos);
+    return (ms < 0.0) ? -1.0f : static_cast<float>(ms);
 }
 
 float AudioEngine::estimatedLatencyMs() const {

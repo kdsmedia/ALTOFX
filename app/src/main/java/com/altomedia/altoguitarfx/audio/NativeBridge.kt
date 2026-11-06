@@ -198,6 +198,12 @@ object NativeBridge {
     /** Estimasi latensi round-trip (ms) dari buffer nyata perangkat. */
     fun estimatedLatencyMs(): Float = if (isLoaded) nativeEstimatedLatencyMs() else 0f
 
+    /**
+     * Latensi round-trip TERUKUR dari timestamp perangkat (BAB 16); negatif
+     * bila perangkat tidak menyediakan timestamp yang dapat dipercaya.
+     */
+    fun measuredLatencyMs(): Float = if (isLoaded) nativeMeasuredLatencyMs() else -1f
+
     /** Kapasitas buffer stream (frame). */
     fun bufferCapacityFrames(): Int = if (isLoaded) nativeBufferCapacityFrames() else 0
 
@@ -335,6 +341,8 @@ object NativeBridge {
     private external fun nativePeakCpuLoad(): Float
 
     private external fun nativeEstimatedLatencyMs(): Float
+
+    private external fun nativeMeasuredLatencyMs(): Float
 
     private external fun nativeBufferCapacityFrames(): Int
 

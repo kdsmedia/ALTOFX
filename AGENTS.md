@@ -105,6 +105,11 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
   menjalankan seluruh suite dengan AddressSanitizer + UndefinedBehaviorSanitizer.
   Selalu jalankan ini setelah mengubah kode buffer/index DSP.
+- Latensi terukur (BAB 16): `AudioEngine::measuredLatencyMs` memakai timestamp
+  Oboe (`getTimestamp`) + `LatencyMath.h::roundTripLatencyMs`; nilai negatif
+  berarti perangkat tidak melaporkan timestamp yang dapat dipercaya. Panel
+  Performa menampilkan nilai terukur dan estimasi secara terpisah, dan
+  menegaskan estimasi bukan hasil pengukuran (blueprint bagian 9).
 - JANGAN memakai float untuk menghitung indeks buffer delay yang besar
   (`DelayLine::read`): pembulatan float dapat menghasilkan indeks == size_.
   Gunakan double dan jaga batas indeks.
