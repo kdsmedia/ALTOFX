@@ -63,12 +63,26 @@ public:
         if (d > static_cast<float>(size_ - 2)) {
             d = static_cast<float>(size_ - 2);
         }
-        float position = static_cast<float>(writeIndex_) - d;
-        while (position < 0.0f) {
-            position += static_cast<float>(size_);
+        // Perhitungan indeks memakai double. Bila memakai float, untuk buffer
+        // besar (mis. Delay 1,2 s pada 48 kHz ~ 58k sampel) selisih kecil
+        // writeIndex-d dapat dibulatkan tepat ke size_ sehingga indeks keluar
+        // batas. Batas akhir tetap dijaga untuk keamanan.
+        double position = static_cast<double>(writeIndex_) - static_cast<double>(d);
+        while (position < 0.0) {
+            position += static_cast<double>(size_);
         }
-        const int32_t i0 = static_cast<int32_t>(position);
-        const float fraction = position - static_cast<float>(i0);
+        int32_t i0 = static_cast<int32_t>(position);
+        if (i0 < 0) {
+            i0 = 0;
+        } else if (i0 > size_ - 1) {
+            i0 = size_ - 1;
+        }
+        float fraction = static_cast<float>(position - static_cast<double>(i0));
+        if (fraction < 0.0f) {
+            fraction = 0.0f;
+        } else if (fraction >= 1.0f) {
+            fraction = 0.0f;
+        }
         const int32_t i1 = (i0 + 1) % size_;
         return buffers_[channel][i0] * (1.0f - fraction) + buffers_[channel][i1] * fraction;
     }

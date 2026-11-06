@@ -79,6 +79,25 @@ int main() {
         pass += ok; total++;
     }
 
+    // DelayLine: indeks tidak boleh keluar batas saat buffer dibaca lama
+    // (regresi bug presisi float pada buffer besar, ~1,2 detik @48 kHz).
+    {
+        DelayLine line;
+        line.prepare(sr, 1200.0f + 10.0f, 2);
+        const int size = static_cast<int>(1210.0 * 0.001 * sr) + 4;
+        bool ok = true;
+        for (int i = 0; i < size * 3; ++i) {
+            line.write(1.0f, 0);
+            // Baca tepat pada panjang buffer penuh: dulu dapat menghasilkan
+            // indeks == size (di luar batas).
+            const float v = line.read(static_cast<float>(size - 2), 0);
+            if (!std::isfinite(v)) { ok = false; break; }
+            line.advance();
+        }
+        printf("DelayLine  3x panjang buffer tanpa OOB -> %s\n", ok ? "OK" : "GAGAL");
+        pass += ok; total++;
+    }
+
     printf("\nRuang/waktu: %d/%d lolos\n", pass, total);
     return pass == total ? 0 : 1;
 }

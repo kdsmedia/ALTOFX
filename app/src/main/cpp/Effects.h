@@ -78,6 +78,13 @@ public:
     void resetOrder();
 
     /**
+     * Menyetel ulang keadaan internal seluruh efek (blueprint bagian 7:
+     * setiap efek punya proses reset). Dipanggil saat audio berhenti agar
+     * ekor delay/reverb lama tidak berbunyi lagi setelah stream dimulai ulang.
+     */
+    void reset();
+
+    /**
      * Bypass keseluruhan: bila aktif, seluruh efek dilewati dan sinyal
      * diteruskan apa adanya (dry). Dipakai untuk tombol bypass global.
      */

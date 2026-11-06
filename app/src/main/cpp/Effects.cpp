@@ -89,6 +89,14 @@ void EffectChain::moveEffect(EffectType type, int delta) {
     orderCode_.store(encode(current));
 }
 
+void EffectChain::reset() {
+    for (auto& effect : effects_) {
+        if (effect) {
+            effect->reset();
+        }
+    }
+}
+
 void EffectChain::resetOrder() {
     std::array<EffectType, kEffectCount> order{};
     for (int i = 0; i < kEffectCount; ++i) {

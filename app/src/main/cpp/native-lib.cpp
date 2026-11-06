@@ -386,6 +386,14 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetPerformance(JNIEnv
     engine().performance().reset();
 }
 
+// ---- Reset efek (BAB 7) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetEffects(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/) {
+    engine().effects().reset();
+}
+
 // ---- Ducking audio focus (BAB 15) ----
 
 extern "C" JNIEXPORT void JNICALL

@@ -74,6 +74,11 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       klik preset (smoothing EQ), preset aktif di Home, pemilih input/output
       cepat, strip pedalboard, pesan input kosong + saran headphone, panel izin,
       penanganan perangkat terputus, info versi nyata. Uji integrasi 12 efek.
+- [x] Gap-fill lanjutan — izin & deteksi USB (iRig), uji stabilitas 60 detik,
+      uji level rendah/tinggi, uji bypass tiap efek, ikon launcher final,
+      ducking audio focus (perbaikan bug), pemilihan sample rate, restore default
+      preset, reset seluruh efek saat interupsi (BAB 7), perbaikan bug indeks
+      DelayLine (heap-buffer-overflow) yang ditemukan lewat AddressSanitizer.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.
@@ -94,6 +99,15 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
     limiter) pada level rendah/tinggi/diam.
   - `bypass_test`: tiap efek mengubah suara saat aktif dan identik bit-per-bit
     saat bypass; plus kombinasi dua efek.
+  - `space_test`: ditambah regresi `DelayLine` (indeks tidak keluar batas).
+- Verifikasi rilis (butuh perangkat/emulator): `bash scripts/verify_release.sh`
+  (tidak tersedia di container ini karena tanpa KVM/emulator).
+- Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
+  menjalankan seluruh suite dengan AddressSanitizer + UndefinedBehaviorSanitizer.
+  Selalu jalankan ini setelah mengubah kode buffer/index DSP.
+- JANGAN memakai float untuk menghitung indeks buffer delay yang besar
+  (`DelayLine::read`): pembulatan float dapat menghasilkan indeks == size_.
+  Gunakan double dan jaga batas indeks.
 - Verifikasi tanda tangan APK: `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
 
 ## Catatan penting
@@ -113,3 +127,8 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Audio focus: `LOSS_TRANSIENT_CAN_DUCK` -> `Event.DUCK` (turun -12 dB lewat
   `duckGain_` di engine, berperataan), `GAIN` -> `Event.UNDUCK` lalu `Event.GAIN`.
   Jangan memetakan duck ke resume/pause.
+- USB Audio Interface: izin diminta lewat `UsbAudioPermission` +
+  `res/xml/usb_device_filter.xml` (kelas audio = 1). Jangan menambah
+  `android.permission.USB_PERMISSION` (bukan izin Android yang nyata).
+- Sample rate: `AudioEngine::setPreferredSampleRate` (default 48000). Perangkat
+  dapat mengabaikannya; `sampleRate()` selalu melaporkan rate stream sebenarnya.

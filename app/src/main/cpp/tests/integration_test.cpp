@@ -218,6 +218,29 @@ int main() {
         pass += ok; total++;
     }
 
+    // 8) Reset efek (blueprint bagian 7): ekor delay/reverb harus hilang.
+    {
+        EffectChain chain;
+        chain.prepare(48000.0, 2);
+        enableAll(chain);
+        setDefaults(chain);
+        const int32_t tailFrames = 24000;  // 0,5 detik pada 48 kHz
+        std::vector<float> impulse(static_cast<size_t>(tailFrames) * 2, 0.0f);
+        impulse[0] = 1.0f;
+        chain.process(impulse.data(), tailFrames, 2);
+        // Setelah reset, buffer harus senyap meski diberi input nol.
+        chain.reset();
+        const int32_t quietFrames = 1024;
+        std::vector<float> silence(static_cast<size_t>(quietFrames) * 2, 0.0f);
+        chain.process(silence.data(), quietFrames, 2);
+        float peak = 0.0f;
+        for (float v : silence) peak = std::max(peak, std::fabs(v));
+        bool ok = peak < 1e-4f;
+        printf("Reset efek menghapus ekor: puncak=%.2e -> %s\n",
+               peak, ok ? "OK" : "GAGAL");
+        pass += ok; total++;
+    }
+
     printf("\nIntegrasi: %d/%d lolos\n", pass, total);
     return pass == total ? 0 : 1;
 }

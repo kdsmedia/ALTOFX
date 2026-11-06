@@ -128,6 +128,9 @@ object AudioController {
     fun pauseForInterruption() {
         if (NativeBridge.isRunning()) {
             NativeBridge.stop()
+            // Bersihkan ekor delay/reverb (blueprint bagian 7) agar tidak
+            // berbunyi lagi setelah stream dimulai ulang.
+            NativeBridge.resetEffects()
             interrupted = true
         }
     }

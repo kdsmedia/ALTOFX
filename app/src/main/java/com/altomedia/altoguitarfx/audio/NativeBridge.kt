@@ -206,6 +206,17 @@ object NativeBridge {
         if (isLoaded) nativeResetPerformance()
     }
 
+    // ---- Reset efek (BAB 7) ----
+
+    /**
+     * Menyetel ulang keadaan internal seluruh efek (blueprint bagian 7).
+     * Dipakai saat audio dijeda agar ekor delay/reverb lama tidak berbunyi
+     * lagi setelah stream dimulai ulang.
+     */
+    fun resetEffects() {
+        if (isLoaded) nativeResetEffects()
+    }
+
     // ---- Ducking audio focus (BAB 15) ----
 
     /** Menurunkan level keluaran sementara saat audio focus sementara hilang. */
@@ -328,6 +339,8 @@ object NativeBridge {
     private external fun nativeBufferCapacityFrames(): Int
 
     private external fun nativeResetPerformance()
+
+    private external fun nativeResetEffects()
 
     private external fun nativeSetDucked(ducked: Boolean)
 
