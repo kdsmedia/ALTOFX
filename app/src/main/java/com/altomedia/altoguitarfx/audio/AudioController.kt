@@ -121,6 +121,16 @@ object AudioController {
 
     fun resetPerformance() = NativeBridge.resetPerformance()
 
+    // ---- Mute & bypass keseluruhan (prinsip interaksi blueprint) ----
+
+    fun setMuted(muted: Boolean) = NativeBridge.setMuted(muted)
+
+    fun isMuted(): Boolean = NativeBridge.isMuted()
+
+    fun setGlobalBypass(bypass: Boolean) = NativeBridge.setGlobalBypass(bypass)
+
+    fun isGlobalBypass(): Boolean = NativeBridge.isGlobalBypass()
+
     /** Data level & diagnostik untuk level meter (BAB 6). */
     data class MeterData(
         val inputLevel: Float,

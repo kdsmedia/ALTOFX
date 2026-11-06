@@ -10,10 +10,23 @@ Equalizer::Equalizer() : Effect(3, "Equalizer") {
 
 void Equalizer::prepare(double sampleRate, int32_t channels) {
     Effect::prepare(sampleRate, channels);
+    // Waktu perataan cukup lama agar perubahan preset tidak menimbulkan klik.
+    bassGain_.configure(param(0), 30.0f, sampleRate);
+    midGain_.configure(param(1), 30.0f, sampleRate);
+    trebleGain_.configure(param(2), 30.0f, sampleRate);
     for (auto& filter : bass_) filter.reset();
     for (auto& filter : mid_) filter.reset();
     for (auto& filter : treble_) filter.reset();
-    updateCoefficients(param(0), param(1), param(2));
+    updateCoefficients(bassGain_.current(), midGain_.current(), trebleGain_.current());
+}
+
+void Equalizer::onParamChanged(int index, float value) {
+    switch (index) {
+        case 0: bassGain_.setTarget(value); break;
+        case 1: midGain_.setTarget(value); break;
+        case 2: trebleGain_.setTarget(value); break;
+        default: break;
+    }
 }
 
 void Equalizer::reset() {
@@ -32,12 +45,17 @@ void Equalizer::updateCoefficients(float bassDb, float midDb, float trebleDb) {
 }
 
 void Equalizer::process(float* buffer, int32_t frames, int32_t channels) {
-    // Koefisien dihitung ulang dari nilai parameter atomik sekali per blok,
-    // di audio thread. Nilai berubah hanya saat pengguna menggeser slider,
-    // sehingga tidak menimbulkan klik yang terdengar.
-    updateCoefficients(param(0), param(1), param(2));
-
+    // Gain dihaluskan per sampel; koefisien dihitung ulang tiap 32 sampel agar
+    // perubahan preset diterapkan bertahap tanpa lonjakan atau klik.
     for (int32_t frame = 0; frame < frames; ++frame) {
+        // Gain dihaluskan tiap sampel; koefisien biquad dihitung ulang tiap
+        // 32 sampel (cukup sering untuk perubahan mulus, hemat CPU).
+        const float bassDb = bassGain_.next();
+        const float midDb = midGain_.next();
+        const float trebleDb = trebleGain_.next();
+        if ((frame & 31) == 0) {
+            updateCoefficients(bassDb, midDb, trebleDb);
+        }
         for (int32_t channel = 0; channel < channels; ++channel) {
             float sample = buffer[frame * channels + channel];
             sample = bass_[channel].process(sample);

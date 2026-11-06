@@ -41,6 +41,8 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
     val context = LocalContext.current
     var status by remember { mutableStateOf(AudioController.refresh()) }
     var meter by remember { mutableStateOf(AudioController.meter()) }
+    var muted by remember { mutableStateOf(AudioController.isMuted()) }
+    var bypassed by remember { mutableStateOf(AudioController.isGlobalBypass()) }
 
     // Polling level dari engine native selama audio berjalan.
     LaunchedEffect(status.running) {
@@ -136,6 +138,40 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                     enabled = status.running
                 ) {
                     Text("Stop", color = Danger)
+                }
+            }
+        }
+
+        PanelCard(
+            title = "Kontrol Utama",
+            modifier = Modifier.padding(top = 12.dp)
+        ) {
+            Text(
+                text = "Mute dan bypass berlaku pada seluruh rantai efek.",
+                color = TextSecondary,
+                fontSize = 12.sp
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        muted = !muted
+                        AudioController.setMuted(muted)
+                    }
+                ) {
+                    Text(if (muted) "Mute: ON" else "Mute: OFF")
+                }
+                OutlinedButton(
+                    onClick = {
+                        bypassed = !bypassed
+                        AudioController.setGlobalBypass(bypassed)
+                    }
+                ) {
+                    Text(if (bypassed) "Bypass: ON" else "Bypass: OFF")
                 }
             }
         }

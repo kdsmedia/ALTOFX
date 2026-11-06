@@ -195,6 +195,22 @@ object NativeBridge {
         if (isLoaded) nativeResetPerformance()
     }
 
+    // ---- Mute & bypass keseluruhan (prinsip interaksi blueprint) ----
+
+    /** Mute output master (meredup dengan perataan, tanpa klik). */
+    fun setMuted(muted: Boolean) {
+        if (isLoaded) nativeSetMuted(muted)
+    }
+
+    fun isMuted(): Boolean = isLoaded && nativeMuted()
+
+    /** Bypass seluruh efek; sinyal diteruskan apa adanya (dry). */
+    fun setGlobalBypass(bypass: Boolean) {
+        if (isLoaded) nativeSetGlobalBypass(bypass)
+    }
+
+    fun isGlobalBypass(): Boolean = isLoaded && nativeGlobalBypass()
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -288,4 +304,12 @@ object NativeBridge {
     private external fun nativeBufferCapacityFrames(): Int
 
     private external fun nativeResetPerformance()
+
+    private external fun nativeSetMuted(muted: Boolean)
+
+    private external fun nativeMuted(): Boolean
+
+    private external fun nativeSetGlobalBypass(bypass: Boolean)
+
+    private external fun nativeGlobalBypass(): Boolean
 }

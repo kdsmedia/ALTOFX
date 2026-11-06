@@ -76,6 +76,14 @@ public:
     /** Mengembalikan urutan ke bawaan. */
     void resetOrder();
 
+    /**
+     * Bypass keseluruhan: bila aktif, seluruh efek dilewati dan sinyal
+     * diteruskan apa adanya (dry). Dipakai untuk tombol bypass global.
+     */
+    void setGlobalBypass(bool bypass) { globalBypass_.store(bypass); }
+
+    bool globalBypass() const { return globalBypass_.load(); }
+
 private:
     Effect* effect(EffectType type) const;
     static std::array<EffectType, kEffectCount> decode(uint64_t code);
@@ -83,6 +91,7 @@ private:
 
     std::array<std::unique_ptr<Effect>, static_cast<size_t>(EffectType::Count)> effects_;
     std::atomic<uint64_t> orderCode_{0};
+    std::atomic<bool> globalBypass_{false};
 };
 
 }  // namespace alto

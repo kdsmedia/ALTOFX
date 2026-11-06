@@ -373,3 +373,31 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetPerformance(JNIEnv
                                                                          jobject /*thiz*/) {
     engine().performance().reset();
 }
+
+// ---- Mute & bypass keseluruhan (blueprint: prinsip interaksi) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetMuted(JNIEnv * /*env*/,
+                                                                 jobject /*thiz*/,
+                                                                 jboolean muted) {
+    engine().outputGain().setMuted(muted == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeMuted(JNIEnv * /*env*/,
+                                                              jobject /*thiz*/) {
+    return engine().outputGain().muted() ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetGlobalBypass(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/,
+                                                                        jboolean bypass) {
+    engine().effects().setGlobalBypass(bypass == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeGlobalBypass(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/) {
+    return engine().effects().globalBypass() ? JNI_TRUE : JNI_FALSE;
+}

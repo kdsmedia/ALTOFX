@@ -106,6 +106,10 @@ void EffectChain::prepare(double sampleRate, int32_t channels) {
 }
 
 void EffectChain::process(float* buffer, int32_t frames, int32_t channels) {
+    // Bypass keseluruhan: sinyal dibiarkan apa adanya tanpa efek.
+    if (globalBypass_.load()) {
+        return;
+    }
     const auto current = decode(orderCode_.load());
     for (const auto type : current) {
         Effect* e = effect(type);

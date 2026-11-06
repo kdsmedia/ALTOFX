@@ -38,14 +38,31 @@ public:
     }
 
     /** Mengatur target gain dalam desibel. */
-    void setTargetDb(float db) { target_.store(dbToLinear(db)); }
+    void setTargetDb(float db) {
+        linearTarget_.store(dbToLinear(db));
+        applyEffectiveTarget();
+    }
 
     /** Mengatur target gain sebagai faktor linier. */
-    void setTargetLinear(float linear) { target_.store(linear); }
+    void setTargetLinear(float linear) {
+        linearTarget_.store(linear);
+        applyEffectiveTarget();
+    }
 
-    float targetDb() const { return linearToDb(target_.load()); }
+    /**
+     * Mute: bila aktif, target efektif menjadi 0 sehingga sinyal meredup
+     * dengan perataan (bukan potong mendadak) dan tidak menimbulkan klik.
+     */
+    void setMuted(bool muted) {
+        muted_.store(muted);
+        applyEffectiveTarget();
+    }
 
-    float targetLinear() const { return target_.load(); }
+    bool muted() const { return muted_.load(); }
+
+    float targetDb() const { return linearToDb(linearTarget_.load()); }
+
+    float targetLinear() const { return linearTarget_.load(); }
 
     /** Nilai gain yang sedang dipakai (hasil perataan terakhir). */
     float currentLinear() const { return current_; }
@@ -65,6 +82,12 @@ public:
     void snapToTarget() { current_ = target_.load(); }
 
 private:
+    void applyEffectiveTarget() {
+        target_.store(muted_.load() ? 0.0f : linearTarget_.load());
+    }
+
+    std::atomic<float> linearTarget_{1.0f};
+    std::atomic<bool> muted_{false};
     std::atomic<float> target_{1.0f};
     float current_ = 1.0f;
     float smoothingCoeff_ = 1.0f;
