@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.altomedia.altoguitarfx.data.Preset
+import com.altomedia.altoguitarfx.data.ActivePresetStore
 import com.altomedia.altoguitarfx.data.PresetRepository
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
@@ -39,7 +40,8 @@ fun PresetsScreen() {
     val context = LocalContext.current
     val repository = remember { PresetRepository(context) }
     var presets by remember { mutableStateOf(repository.load()) }
-    var activeName by remember { mutableStateOf<String?>(null) }
+    // Preset aktif dibagi dengan Home lewat ActivePresetStore (blueprint bagian 6).
+    val activeName = ActivePresetStore.name
     var dialog by remember { mutableStateOf<PresetDialog?>(null) }
     var message by remember { mutableStateOf("") }
 
@@ -109,14 +111,14 @@ fun PresetsScreen() {
                     active = preset.name == activeName,
                     onLoad = {
                         repository.apply(preset)
-                        activeName = preset.name
+                        ActivePresetStore.set(preset)
                         message = "Preset '${preset.name}' dimuat."
                     },
                     onRename = { dialog = PresetDialog.Rename(preset) },
                     onDuplicate = { dialog = PresetDialog.Duplicate(preset) },
                     onDelete = {
                         repository.delete(preset.name)
-                        if (activeName == preset.name) activeName = null
+                        if (activeName == preset.name) ActivePresetStore.setName(null, false)
                         refresh()
                         message = "Preset '${preset.name}' dihapus."
                     }
@@ -142,12 +144,12 @@ fun PresetsScreen() {
                 when (request) {
                     PresetDialog.SaveNew -> {
                         repository.save(repository.capture(name))
-                        activeName = name
+                        ActivePresetStore.setName(name, true)
                         message = "Preset '$name' disimpan."
                     }
                     is PresetDialog.Rename -> {
                         repository.rename(request.preset.name, name)
-                        if (activeName == request.preset.name) activeName = name
+                        if (activeName == request.preset.name) ActivePresetStore.setName(name, true)
                         message = "Preset diganti nama menjadi '$name'."
                     }
                     is PresetDialog.Duplicate -> {

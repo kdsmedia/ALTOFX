@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -26,10 +29,13 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.altomedia.altoguitarfx.audio.AudioController
 import com.altomedia.altoguitarfx.audio.AudioDeviceManager
+import com.altomedia.altoguitarfx.data.ActivePresetStore
+import com.altomedia.altoguitarfx.data.PresetRepository
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
+import com.altomedia.altoguitarfx.ui.theme.Accent
 import com.altomedia.altoguitarfx.ui.theme.Danger
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 import kotlinx.coroutines.delay
@@ -177,6 +183,8 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
             }
         }
 
+        PresetPanel(onNavigate = onNavigate)
+
         PanelCard(
             title = "Kontrol Utama",
             modifier = Modifier.padding(top = 12.dp)
@@ -227,5 +235,72 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Panel preset aktif (blueprint bagian 6: Home menampilkan preset aktif serta
+ * tombol simpan/muat preset). Menyimpan keadaan DSP saat ini menjadi preset
+ * pengguna baru, atau membuka layar Presets untuk memuat preset lain.
+ */
+@Composable
+private fun PresetPanel(onNavigate: (Destination) -> Unit) {
+    val context = LocalContext.current
+    val repository = remember { PresetRepository(context) }
+    val activeName = ActivePresetStore.name
+    var showSave by remember { mutableStateOf(false) }
+    var saveName by remember { mutableStateOf("") }
+
+    PanelCard(
+        title = "Preset Aktif",
+        modifier = Modifier.padding(top = 12.dp)
+    ) {
+        Text(
+            text = activeName?.let { "Preset aktif: $it" } ?: "Belum ada preset dimuat.",
+            color = if (activeName != null) Accent else TextSecondary,
+            fontSize = 14.sp
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(onClick = { saveName = activeName.orEmpty(); showSave = true }) {
+                Text("Simpan", color = MaterialTheme.colorScheme.onPrimary)
+            }
+            OutlinedButton(onClick = { onNavigate(Destination.PRESETS) }) {
+                Text("Muat")
+            }
+        }
+    }
+
+    if (showSave) {
+        AlertDialog(
+            onDismissRequest = { showSave = false },
+            title = { Text("Simpan Preset") },
+            text = {
+                OutlinedTextField(
+                    value = saveName,
+                    onValueChange = { saveName = it },
+                    singleLine = true,
+                    label = { Text("Nama preset") }
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = saveName.isNotBlank(),
+                    onClick = {
+                        val preset = repository.capture(saveName.trim())
+                        repository.save(preset)
+                        ActivePresetStore.set(preset)
+                        showSave = false
+                    }
+                ) { Text("Simpan") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSave = false }) { Text("Batal") }
+            }
+        )
     }
 }
