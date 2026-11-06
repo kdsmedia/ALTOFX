@@ -132,6 +132,43 @@ object NativeBridge {
         if (isLoaded) nativeSetTunerReference(referenceHz)
     }
 
+    // ---- Pengaturan audio, gain, limiter, error (BAB 15) ----
+
+    /** Trim gain input dalam desibel. */
+    fun setInputGainDb(db: Float) {
+        if (isLoaded) nativeSetInputGainDb(db)
+    }
+
+    fun inputGainDb(): Float = if (isLoaded) nativeInputGainDb() else 0f
+
+    /** Level output master dalam desibel. */
+    fun setOutputGainDb(db: Float) {
+        if (isLoaded) nativeSetOutputGainDb(db)
+    }
+
+    fun outputGainDb(): Float = if (isLoaded) nativeOutputGainDb() else 0f
+
+    /** Batas limiter keluaran dalam desibel (0 = 0 dBFS). */
+    fun setLimiterCeilingDb(db: Float) {
+        if (isLoaded) nativeSetLimiterCeilingDb(db)
+    }
+
+    fun limiterCeilingDb(): Float = if (isLoaded) nativeLimiterCeilingDb() else 0f
+
+    /** true bila input terpotong pada blok terakhir. */
+    fun inputClipping(): Boolean = isLoaded && nativeInputClipping()
+
+    /** true bila output terpotong pada blok terakhir. */
+    fun outputClipping(): Boolean = isLoaded && nativeOutputClipping()
+
+    /** Pesan kesalahan audio terakhir, kosong bila tidak ada. */
+    fun lastError(): String = if (isLoaded) nativeLastError() else ""
+
+    /** Mengosongkan pesan kesalahan terakhir. */
+    fun clearLastError() {
+        if (isLoaded) nativeClearLastError()
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -191,4 +228,24 @@ object NativeBridge {
     private external fun nativeTunerConfidence(): Float
 
     private external fun nativeSetTunerReference(referenceHz: Float)
+
+    private external fun nativeSetInputGainDb(db: Float)
+
+    private external fun nativeInputGainDb(): Float
+
+    private external fun nativeSetOutputGainDb(db: Float)
+
+    private external fun nativeOutputGainDb(): Float
+
+    private external fun nativeSetLimiterCeilingDb(db: Float)
+
+    private external fun nativeLimiterCeilingDb(): Float
+
+    private external fun nativeInputClipping(): Boolean
+
+    private external fun nativeOutputClipping(): Boolean
+
+    private external fun nativeLastError(): String
+
+    private external fun nativeClearLastError()
 }

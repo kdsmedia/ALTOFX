@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Effects.h"
+#include "GainStage.h"
 #include "PitchDetector.h"
 
 namespace alto {
@@ -69,6 +70,38 @@ public:
     /** Akses ke detektor pitch untuk tuner (BAB 14). */
     PitchDetector& pitch() { return pitch_; }
 
+    /** Trim gain input (BAB 15), dalam desibel. */
+    GainStage& inputGain() { return inputGain_; }
+
+    /** Level output master (BAB 15), dalam desibel. */
+    GainStage& outputGain() { return outputGain_; }
+
+    /** true bila input terdeteksi terpotong (clipping) pada blok terakhir. */
+    bool inputClipping() const { return inputClipping_.load(); }
+
+    /** true bila output terdeteksi terpotong pada blok terakhir. */
+    bool outputClipping() const { return outputClipping_.load(); }
+
+    /** Batas atas level keluaran (limiter) dalam desibel, default 0 dBFS. */
+    void setLimiterCeilingDb(float db) { limiterCeilingDb_.store(db); }
+
+    float limiterCeilingDb() const { return limiterCeilingDb_.load(); }
+
+    /**
+     * Pesan kesalahan terakhir (BAB 15), mis. perangkat terputus. Kosong bila
+     * tidak ada masalah. Dibaca UI untuk menampilkan status yang informatif.
+     */
+    std::string lastError() const {
+        std::lock_guard<std::mutex> guard(errorLock_);
+        return lastError_;
+    }
+
+    /** Mengosongkan pesan kesalahan terakhir. */
+    void clearLastError() {
+        std::lock_guard<std::mutex> guard(errorLock_);
+        lastError_.clear();
+    }
+
     /**
      * Memilih perangkat input/output (BAB 5). ID berasal dari
      * AudioDeviceInfo.id pada sisi Android. Nilai -1 berarti perangkat default
@@ -105,7 +138,14 @@ private:
     std::atomic<int64_t> framesProcessed_{0};
     EffectChain effects_;
     PitchDetector pitch_;
+    GainStage inputGain_;
+    GainStage outputGain_;
+    std::atomic<bool> inputClipping_{false};
+    std::atomic<bool> outputClipping_{false};
+    std::atomic<float> limiterCeilingDb_{0.0f};
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
+    mutable std::mutex errorLock_;
+    std::string lastError_;
 };
 
 }  // namespace alto

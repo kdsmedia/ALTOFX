@@ -264,3 +264,68 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetTunerReference(JNIEn
                                                                           jfloat referenceHz) {
     engine().pitch().setReferenceHz(referenceHz);
 }
+
+// ---- Pengaturan audio, gain, limiter, error (BAB 15) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetInputGainDb(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jfloat db) {
+    engine().inputGain().setTargetDb(db);
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeInputGainDb(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/) {
+    return engine().inputGain().targetDb();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetOutputGainDb(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/,
+                                                                        jfloat db) {
+    engine().outputGain().setTargetDb(db);
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeOutputGainDb(JNIEnv * /*env*/,
+                                                                      jobject /*thiz*/) {
+    return engine().outputGain().targetDb();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetLimiterCeilingDb(JNIEnv * /*env*/,
+                                                                            jobject /*thiz*/,
+                                                                            jfloat db) {
+    engine().setLimiterCeilingDb(db);
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeLimiterCeilingDb(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/) {
+    return engine().limiterCeilingDb();
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeInputClipping(JNIEnv * /*env*/,
+                                                                      jobject /*thiz*/) {
+    return engine().inputClipping() ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeOutputClipping(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/) {
+    return engine().outputClipping() ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeLastError(JNIEnv *env,
+                                                                  jobject /*thiz*/) {
+    return stdToJstring(env, engine().lastError());
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeClearLastError(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/) {
+    engine().clearLastError();
+}

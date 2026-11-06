@@ -17,6 +17,13 @@ constexpr int32_t kPreferredSampleRate = 48000;
 
 AudioEngine::AudioEngine() = default;
 
+namespace {
+void setError(std::mutex& lock, std::string& target, const std::string& message) {
+    std::lock_guard<std::mutex> guard(lock);
+    target = message;
+}
+}  // namespace
+
 AudioEngine::~AudioEngine() {
     stopAudio();
 }
@@ -87,6 +94,9 @@ oboe::Result AudioEngine::openStreams() {
     effects_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
     // Siapkan detektor pitch tuner (BAB 14) dengan sample rate stream.
     pitch_.prepare(outputStream_->getSampleRate());
+    // Siapkan tahap gain trim input dan level output master (BAB 15).
+    inputGain_.prepare(outputStream_->getSampleRate());
+    outputGain_.prepare(outputStream_->getSampleRate());
 
     sampleRate_.store(outputStream_->getSampleRate());
     channelCount_.store(outputStream_->getChannelCount());
@@ -102,16 +112,23 @@ std::string AudioEngine::startAudio() {
     if (running_.load()) {
         return "Audio sudah berjalan";
     }
+    clearLastError();
     oboe::Result result = openStreams();
     if (result != oboe::Result::OK) {
-        return std::string("Gagal membuka stream: ") + oboe::convertToText(result);
+        const std::string message =
+            std::string("Gagal membuka stream: ") + oboe::convertToText(result);
+        setError(errorLock_, lastError_, message);
+        return message;
     }
     result = FullDuplexStream::start();
     if (result != oboe::Result::OK) {
         LOGE("Start gagal: %s", oboe::convertToText(result));
         if (inputStream_) { inputStream_->close(); inputStream_.reset(); }
         if (outputStream_) { outputStream_->close(); outputStream_.reset(); }
-        return std::string("Gagal memulai stream: ") + oboe::convertToText(result);
+        const std::string message =
+            std::string("Gagal memulai stream: ") + oboe::convertToText(result);
+        setError(errorLock_, lastError_, message);
+        return message;
     }
     running_.store(true);
     return "Audio berjalan";
@@ -146,17 +163,30 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // Jumlah frame yang bisa diproses bersama oleh kedua stream.
     int32_t frames = (numInputFrames < numOutputFrames) ? numInputFrames : numOutputFrames;
 
-    float inputPeak = 0.0f;
+    // Salin input ke output lebih dulu, lalu terapkan trim gain input (BAB 15)
+    // dengan perataan per-sampel agar perubahan tidak menimbulkan klik.
     for (int32_t frame = 0; frame < frames; ++frame) {
         const float sample = input[frame * inChannels];
-        const float magnitude = (sample < 0.0f) ? -sample : sample;
-        if (magnitude > inputPeak) {
-            inputPeak = magnitude;
-        }
         for (int32_t channel = 0; channel < outChannels; ++channel) {
             output[frame * outChannels + channel] = sample;
         }
     }
+    inputGain_.process(output, frames, outChannels);
+
+    // Deteksi clipping input setelah trim gain.
+    float inputPeak = 0.0f;
+    bool inputClip = false;
+    for (int32_t frame = 0; frame < frames; ++frame) {
+        const float sample = output[frame * outChannels];
+        const float magnitude = (sample < 0.0f) ? -sample : sample;
+        if (magnitude > inputPeak) {
+            inputPeak = magnitude;
+        }
+        if (magnitude > 1.0f) {
+            inputClip = true;
+        }
+    }
+    inputClipping_.store(inputClip);
 
     // BAB 14: analisis pitch dari sinyal input mentah. Analisis hanya
     // dijalankan ketika tuner aktif (setActive), sehingga tidak membebani
@@ -167,16 +197,29 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // output. Hanya efek aktif yang diproses; tanpa alokasi atau lock.
     effects_.process(output, frames, outChannels);
 
+    // Level output master + limiter (BAB 15). Limiter membatasi puncak ke
+    // batas yang ditetapkan sehingga mencegah clipping keras di perangkat.
+    outputGain_.process(output, frames, outChannels);
+    const float ceiling = GainStage::dbToLinear(limiterCeilingDb_.load());
     float outputPeak = 0.0f;
+    bool outputClip = false;
     for (int32_t frame = 0; frame < frames; ++frame) {
         for (int32_t channel = 0; channel < outChannels; ++channel) {
-            const float sample = output[frame * outChannels + channel];
+            float& sample = output[frame * outChannels + channel];
+            if (sample > ceiling) {
+                sample = ceiling;
+                outputClip = true;
+            } else if (sample < -ceiling) {
+                sample = -ceiling;
+                outputClip = true;
+            }
             const float magnitude = (sample < 0.0f) ? -sample : sample;
             if (magnitude > outputPeak) {
                 outputPeak = magnitude;
             }
         }
     }
+    outputClipping_.store(outputClip);
 
     inputLevel_.store(inputPeak);
     outputLevel_.store(outputPeak);
@@ -201,13 +244,18 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream * /*stream*/, oboe::Result
     // Perangkat berubah (mis. iRig dicabut/dicolok) atau koneksi terputus.
     if (running_.load() && error == oboe::Result::ErrorDisconnected) {
         LOGI("Perangkat terputus, mencoba membuka ulang stream");
+        setError(errorLock_, lastError_,
+                 "Perangkat audio terputus; mencoba menyambung ulang.");
         std::lock_guard<std::mutex> guard(lock_);
         if (inputStream_) { inputStream_->close(); inputStream_.reset(); }
         if (outputStream_) { outputStream_->close(); outputStream_.reset(); }
         if (openStreams() == oboe::Result::OK) {
             FullDuplexStream::start();
+            clearLastError();
         } else {
             running_.store(false);
+            setError(errorLock_, lastError_,
+                     "Perangkat audio terputus dan gagal dibuka ulang.");
         }
     }
 }

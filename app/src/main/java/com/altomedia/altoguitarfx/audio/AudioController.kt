@@ -46,6 +46,59 @@ object AudioController {
 
     fun refresh(): Status = current("")
 
+    // ---- Lifecycle & interupsi (BAB 15) ----
+
+    private var interrupted = false
+
+    /**
+     * Menjeda audio karena aplikasi masuk background atau kehilangan audio
+     * focus. Status berjalan diingat agar bisa dilanjutkan lewat [resume].
+     */
+    fun pauseForInterruption() {
+        if (NativeBridge.isRunning()) {
+            NativeBridge.stop()
+            interrupted = true
+        }
+    }
+
+    /** Melanjutkan audio setelah [pauseForInterruption]. */
+    fun resumeAfterInterruption() {
+        if (interrupted) {
+            NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
+            NativeBridge.start()
+            interrupted = false
+        }
+    }
+
+    /** true bila audio sedang dijeda karena interupsi. */
+    fun isInterrupted(): Boolean = interrupted
+
+    // ---- Gain, limiter, dan pemantauan clipping (BAB 15) ----
+
+    data class Levels(
+        val inputClipping: Boolean,
+        val outputClipping: Boolean,
+        val lastError: String
+    )
+
+    fun setInputGainDb(db: Float) = NativeBridge.setInputGainDb(db)
+
+    fun inputGainDb(): Float = NativeBridge.inputGainDb()
+
+    fun setOutputGainDb(db: Float) = NativeBridge.setOutputGainDb(db)
+
+    fun outputGainDb(): Float = NativeBridge.outputGainDb()
+
+    fun setLimiterCeilingDb(db: Float) = NativeBridge.setLimiterCeilingDb(db)
+
+    fun limiterCeilingDb(): Float = NativeBridge.limiterCeilingDb()
+
+    fun levels(): Levels = Levels(
+        inputClipping = NativeBridge.inputClipping(),
+        outputClipping = NativeBridge.outputClipping(),
+        lastError = NativeBridge.lastError()
+    )
+
     /** Data level & diagnostik untuk level meter (BAB 6). */
     data class MeterData(
         val inputLevel: Float,
