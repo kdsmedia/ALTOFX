@@ -236,7 +236,8 @@ object AudioController {
         val peakCpuLoad: Float,
         val estimatedLatencyMs: Float,
         val measuredLatencyMs: Float,
-        val bufferCapacityFrames: Int
+        val bufferCapacityFrames: Int,
+        val xrunCount: Long
     )
 
     fun performance(): Performance = Performance(
@@ -246,7 +247,8 @@ object AudioController {
         peakCpuLoad = NativeBridge.peakCpuLoad(),
         estimatedLatencyMs = NativeBridge.estimatedLatencyMs(),
         measuredLatencyMs = NativeBridge.measuredLatencyMs(),
-        bufferCapacityFrames = NativeBridge.bufferCapacityFrames()
+        bufferCapacityFrames = NativeBridge.bufferCapacityFrames(),
+        xrunCount = NativeBridge.xrunCount()
     )
 
     fun resetPerformance() = NativeBridge.resetPerformance()

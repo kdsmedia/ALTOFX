@@ -35,8 +35,8 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
   seperti iRig), izin USB, deteksi cabut/colok otomatis.
 - **Audio focus**: ducking (−12 dB) saat fokus sementara hilang, pause/resume
   otomatis pada lifecycle.
-- **Performa & latensi**: beban callback, xrun, dan latensi round-trip terukur
-  dari timestamp Oboe.
+- **Performa & latensi**: beban callback rata-rata/puncak, jumlah xrun
+  (drop-out), dan latensi round-trip terukur dari timestamp Oboe.
 - **Persistensi**: pilihan perangkat, sample rate, referensi tuner, trim input,
   gain output, dan mute bertahan antar sesi.
 
@@ -97,6 +97,9 @@ bash app/src/main/cpp/tests/run_tests.sh
 
 # Ditambah AddressSanitizer + UndefinedBehaviorSanitizer
 ASAN=1 bash app/src/main/cpp/tests/run_tests.sh
+
+# Kontrak JNI: deklarasi Kotlin vs implementasi C++ harus sinkron
+bash scripts/check_jni.sh
 
 # Verifikasi rilis (butuh perangkat/emulator lewat adb)
 bash scripts/verify_release.sh

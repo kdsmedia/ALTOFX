@@ -405,8 +405,9 @@ private fun PerformancePanel() {
             modifier = Modifier.padding(top = 4.dp)
         )
         Text(
-            text = "Buffer: ${perf.bufferCapacityFrames} frame",
-            color = TextSecondary,
+            text = "Buffer: ${perf.bufferCapacityFrames} frame\n" +
+                "Xrun (drop-out): ${perf.xrunCount}",
+            color = if (perf.xrunCount > 0) Danger else TextSecondary,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 4.dp)
         )

@@ -111,6 +111,9 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   di-commit (lihat pengecualian di `.gitignore`).
 - Verifikasi rilis (butuh perangkat/emulator): `bash scripts/verify_release.sh`
   (tidak tersedia di container ini karena tanpa KVM/emulator).
+- Kontrak JNI: `bash scripts/check_jni.sh` memastikan setiap `external fun
+  nativeXxx` di NativeBridge.kt punya implementasi C++ di native-lib.cpp (dan
+  sebaliknya). Jalankan setelah menambah/menghapus fungsi native.
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
   menjalankan seluruh suite dengan AddressSanitizer + UndefinedBehaviorSanitizer.
   Selalu jalankan ini setelah mengubah kode buffer/index DSP.

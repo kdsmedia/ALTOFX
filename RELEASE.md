@@ -53,6 +53,24 @@ apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
       terhubung untuk memverifikasi tanda tangan, label, instalasi, dan
       ketiadaan crash saat buka/tutup.
 - [x] Latensi round-trip diukur dari timestamp Oboe (bukan angka teoretis).
+- [x] Kontrak JNI sinkron (`bash scripts/check_jni.sh`): 57 fungsi native
+      terdeklarasi di Kotlin dan terimplementasi di C++.
+- [x] Artefak APK debug/release + AAB beserta checksum di-commit di `artifacts/`.
+
+## Artefak rilis di repositori
+
+Setiap build rilis meng-commit artefak ke folder `artifacts/` agar dapat
+diverifikasi ulang dari repositori:
+
+```bash
+./gradlew assembleDebug assembleRelease bundleRelease
+bash scripts/collect_artifacts.sh
+```
+
+- `artifacts/altoguitarfx-debug.apk` — APK debug (uji internal).
+- `artifacts/altoguitarfx-release.apk` — APK release, ditandatangani keystore release.
+- `artifacts/altoguitarfx-release.aab` — Android App Bundle untuk distribusi Play.
+- `artifacts/SHA256SUMS.txt` — checksum SHA-256 ketiga berkas di atas.
 
 ## Kompatibilitas interface audio
 
