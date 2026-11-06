@@ -43,6 +43,23 @@ public:
 
     int32_t framesPerBurst() const { return framesPerBurst_.load(); }
 
+    // ---- Pemantauan level & diagnostik (BAB 6) ----
+
+    /** Level puncak (peak) blok input terakhir, 0..1 linier. */
+    float inputLevel() const { return inputLevel_.load(); }
+
+    /** Level puncak (peak) blok output terakhir, 0..1 linier. */
+    float outputLevel() const { return outputLevel_.load(); }
+
+    /** Jumlah callback audio yang sudah dijalankan sejak stream dibuka. */
+    int64_t callbackCount() const { return callbackCount_.load(); }
+
+    /** Jumlah frame audio yang sudah diproses sejak stream dibuka. */
+    int64_t framesProcessed() const { return framesProcessed_.load(); }
+
+    /** Jumlah kejadian underrun/overrun (xrun) yang dilaporkan Oboe. */
+    int64_t xrunCount() const;
+
     /**
      * Memilih perangkat input/output (BAB 5). ID berasal dari
      * AudioDeviceInfo.id pada sisi Android. Nilai -1 berarti perangkat default
@@ -73,6 +90,10 @@ private:
     std::atomic<int32_t> channelCount_{0};
     std::atomic<int32_t> inputDeviceId_{-1};
     std::atomic<int32_t> outputDeviceId_{-1};
+    std::atomic<float> inputLevel_{0.0f};
+    std::atomic<float> outputLevel_{0.0f};
+    std::atomic<int64_t> callbackCount_{0};
+    std::atomic<int64_t> framesProcessed_{0};
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
 };
 

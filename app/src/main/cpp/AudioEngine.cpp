@@ -130,8 +130,8 @@ std::string AudioEngine::stopAudio() {
 
 oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, int numInputFrames,
                                                         void *outputData, int numOutputFrames) {
-    // BAB 4: jalur audio nyata input -> output. Input mono disalin ke semua
-    // kanal output. Efek DSP ditambahkan pada BAB 7.
+    // BAB 6: jalur audio nyata input -> output dengan pengukuran level.
+    // Efek DSP ditambahkan pada BAB 7.
     const auto *input = static_cast<const float *>(inputData);
     auto *output = static_cast<float *>(outputData);
 
@@ -141,14 +141,39 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // Jumlah frame yang bisa diproses bersama oleh kedua stream.
     int32_t frames = (numInputFrames < numOutputFrames) ? numInputFrames : numOutputFrames;
 
+    float inputPeak = 0.0f;
+    float outputPeak = 0.0f;
     for (int32_t frame = 0; frame < frames; ++frame) {
         const float sample = input[frame * inChannels];
+        const float magnitude = (sample < 0.0f) ? -sample : sample;
+        if (magnitude > inputPeak) {
+            inputPeak = magnitude;
+        }
         for (int32_t channel = 0; channel < outChannels; ++channel) {
             output[frame * outChannels + channel] = sample;
         }
+        if (magnitude > outputPeak) {
+            outputPeak = magnitude;
+        }
     }
-    // Sisa frame output (bila output meminta lebih) dibiarkan apa adanya.
+
+    inputLevel_.store(inputPeak);
+    outputLevel_.store(outputPeak);
+    callbackCount_.fetch_add(1);
+    framesProcessed_.fetch_add(frames);
+
     return oboe::DataCallbackResult::Continue;
+}
+
+int64_t AudioEngine::xrunCount() const {
+    // Oboe melaporkan xrun lewat stream; baca dari stream output bila ada.
+    if (outputStream_ != nullptr) {
+        auto result = outputStream_->getXRunCount();
+        if (result) {
+            return result.value();
+        }
+    }
+    return 0;
 }
 
 void AudioEngine::onErrorAfterClose(oboe::AudioStream * /*stream*/, oboe::Result error) {

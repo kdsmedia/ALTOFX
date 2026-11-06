@@ -46,6 +46,23 @@ object AudioController {
 
     fun refresh(): Status = current("")
 
+    /** Data level & diagnostik untuk level meter (BAB 6). */
+    data class MeterData(
+        val inputLevel: Float,
+        val outputLevel: Float,
+        val callbackCount: Long,
+        val framesProcessed: Long,
+        val xrunCount: Long
+    )
+
+    fun meter(): MeterData = MeterData(
+        inputLevel = NativeBridge.inputLevel(),
+        outputLevel = NativeBridge.outputLevel(),
+        callbackCount = NativeBridge.callbackCount(),
+        framesProcessed = NativeBridge.framesProcessed(),
+        xrunCount = NativeBridge.xrunCount()
+    )
+
     private fun current(message: String): Status = Status(
         running = NativeBridge.isRunning(),
         message = message,

@@ -46,6 +46,20 @@ object NativeBridge {
         if (isLoaded) nativeSetDeviceIds(inputDeviceId, outputDeviceId)
     }
 
+    // ---- Level & diagnostik (BAB 6) ----
+
+    /** Level puncak blok input terakhir, 0..1 linier. */
+    fun inputLevel(): Float = if (isLoaded) nativeInputLevel() else 0f
+
+    /** Level puncak blok output terakhir, 0..1 linier. */
+    fun outputLevel(): Float = if (isLoaded) nativeOutputLevel() else 0f
+
+    fun callbackCount(): Long = if (isLoaded) nativeCallbackCount() else 0L
+
+    fun framesProcessed(): Long = if (isLoaded) nativeFramesProcessed() else 0L
+
+    fun xrunCount(): Long = if (isLoaded) nativeXrunCount() else 0L
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -61,4 +75,14 @@ object NativeBridge {
     private external fun nativeFramesPerBurst(): Int
 
     private external fun nativeSetDeviceIds(inputDeviceId: Int, outputDeviceId: Int)
+
+    private external fun nativeInputLevel(): Float
+
+    private external fun nativeOutputLevel(): Float
+
+    private external fun nativeCallbackCount(): Long
+
+    private external fun nativeFramesProcessed(): Long
+
+    private external fun nativeXrunCount(): Long
 }

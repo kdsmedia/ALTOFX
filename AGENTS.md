@@ -58,7 +58,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 3 — NDK, CMake, integrasi JNI (build native 3 ABI sukses)
 - [x] BAB 4 — Oboe, buka input/output stream (full-duplex, siap iRig/USB)
 - [x] BAB 5 — Pilih mikrofon internal & deteksi USB (daftar perangkat nyata + pemilihan)
-- [ ] BAB 6 — Audio callback & level meter
+- [x] BAB 6 — Audio callback & level meter (peak input/output, xrun, diagnostik)
 - [ ] BAB 7 — Noise Gate & Compressor
 - [ ] BAB 8 — Overdrive, Distortion, Fuzz
 - [ ] BAB 9 — Equalizer
