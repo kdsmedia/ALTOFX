@@ -76,3 +76,19 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Komentar kode ditulis singkat dan hanya untuk hal yang tidak jelas dari kode.
 - Struktur folder mengikuti PDF bagian 5 (usulan awal, boleh disesuaikan).
 - Dokumen ini (`AGENTS.md`) diperbarui setiap menyelesaikan satu BAB.
+
+## Perintah kerja
+- Build debug: `source ~/.android_env.sh && ./gradlew assembleDebug`
+- Build release (bertanda tangan): `./gradlew assembleRelease` (kredensial dari `keystore.properties`, lihat `RELEASE.md`)
+- Uji DSP di host (tanpa perangkat): `bash app/src/main/cpp/tests/run_tests.sh`
+  - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf.
+- Verifikasi tanda tangan APK: `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
+
+## Catatan penting
+- Efek baru: daftarkan di `EffectChain` (`Effects.cpp`), tambahkan JNI bila perlu, lalu
+  tambahkan entri di `EffectType.kt` (ID harus sama dengan enum C++).
+- Urutan efek disimpan sebagai kode 4-bit per slot dalam satu atomik 64-bit; jangan
+  mengubah urutan enum tanpa memperbarui kedua sisi.
+- Parameter DSP diubah dari UI lewat atomik; jangan menyentuh objek DSP dari dua thread.
+- Preset disimpan sebagai JSON di SharedPreferences (`PresetRepository`).
+- `keystore.properties` dan `*.jks` tidak boleh di-commit.
