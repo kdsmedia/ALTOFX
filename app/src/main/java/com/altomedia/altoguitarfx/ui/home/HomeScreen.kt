@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -183,6 +187,8 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
             }
         }
 
+        RoutingPanel(status = status, onStatus = { status = it })
+
         PresetPanel(onNavigate = onNavigate)
 
         PanelCard(
@@ -302,5 +308,117 @@ private fun PresetPanel(onNavigate: (Destination) -> Unit) {
                 TextButton(onClick = { showSave = false }) { Text("Batal") }
             }
         )
+    }
+}
+
+/**
+ * Pemilih input/output cepat (blueprint bagian 6: Home menampilkan pilihan
+ * input Internal Mic / USB Interface dan pilihan output yang tersedia).
+ * Mengganti pilihan langsung menerapkan: bila audio berjalan, stream di-start
+ * ulang dengan perangkat baru.
+ */
+@Composable
+private fun RoutingPanel(
+    status: AudioController.Status,
+    onStatus: (AudioController.Status) -> Unit
+) {
+    val context = LocalContext.current
+    val manager = remember { AudioDeviceManager(context) }
+    var inputs by remember { mutableStateOf(manager.inputDevices()) }
+    var outputs by remember { mutableStateOf(manager.outputDevices()) }
+    var selectedInput by remember { mutableStateOf(AudioController.selectedInputId()) }
+    var selectedOutput by remember { mutableStateOf(AudioController.selectedOutputId()) }
+
+    DisposableEffect(Unit) {
+        val callback = manager.observe {
+            inputs = manager.inputDevices()
+            outputs = manager.outputDevices()
+        }
+        onDispose { manager.stopObserving(callback) }
+    }
+
+    PanelCard(
+        title = "Input & Output",
+        modifier = Modifier.padding(top = 12.dp)
+    ) {
+        Text(text = "Input", color = TextSecondary, fontSize = 12.sp)
+        if (inputs.isEmpty()) {
+            Text(
+                text = "Tidak ada perangkat input terdeteksi.",
+                color = Danger,
+                fontSize = 12.sp
+            )
+        }
+        inputs.forEach { device ->
+            QuickDeviceRow(
+                label = device.name.ifEmpty { device.typeLabel },
+                detail = device.typeLabel,
+                selected = selectedInput == device.id,
+                onClick = {
+                    selectedInput = device.id
+                    onStatus(AudioController.switchInput(device.id))
+                }
+            )
+        }
+
+        Text(
+            text = "Output",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        if (outputs.isEmpty()) {
+            Text(
+                text = "Tidak ada perangkat output terdeteksi.",
+                color = Danger,
+                fontSize = 12.sp
+            )
+        }
+        outputs.forEach { device ->
+            QuickDeviceRow(
+                label = device.name.ifEmpty { device.typeLabel },
+                detail = device.typeLabel,
+                selected = selectedOutput == device.id,
+                onClick = {
+                    selectedOutput = device.id
+                    onStatus(AudioController.switchOutput(device.id))
+                }
+            )
+        }
+
+        if (status.running) {
+            Text(
+                text = "Perangkat berganti saat audio berjalan akan di-start ulang.",
+                color = TextSecondary,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickDeviceRow(
+    label: String,
+    detail: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp)
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Column(modifier = Modifier.padding(start = 4.dp)) {
+            Text(
+                text = label,
+                color = if (selected) Accent else MaterialTheme.colorScheme.onSurface,
+                fontSize = 13.sp
+            )
+            Text(text = detail, color = TextSecondary, fontSize = 11.sp)
+        }
     }
 }

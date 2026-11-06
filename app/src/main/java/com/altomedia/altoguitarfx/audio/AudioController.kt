@@ -29,6 +29,30 @@ object AudioController {
         outputDeviceId = deviceId
     }
 
+    /**
+     * Mengganti input lalu menerapkannya segera. Bila audio sedang berjalan,
+     * stream dihentikan dan dimulai ulang agar perangkat baru benar-benar
+     * dipakai (blueprint bagian 6: pilihan input di Home).
+     */
+    fun switchInput(deviceId: Int): Status {
+        val wasRunning = NativeBridge.isRunning()
+        if (wasRunning) {
+            NativeBridge.stop()
+        }
+        selectInput(deviceId)
+        return if (wasRunning) start() else refresh()
+    }
+
+    /** Mengganti output lalu menerapkannya segera (lihat [switchInput]). */
+    fun switchOutput(deviceId: Int): Status {
+        val wasRunning = NativeBridge.isRunning()
+        if (wasRunning) {
+            NativeBridge.stop()
+        }
+        selectOutput(deviceId)
+        return if (wasRunning) start() else refresh()
+    }
+
     fun selectedInputId(): Int = inputDeviceId
 
     fun selectedOutputId(): Int = outputDeviceId
