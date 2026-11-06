@@ -11,6 +11,9 @@ object AudioController {
 
     const val DEFAULT_DEVICE_ID = -1
 
+    /** Sample rate default sesuai blueprint Lampiran A. */
+    const val DEFAULT_SAMPLE_RATE = 48000
+
     data class Status(
         val running: Boolean,
         val message: String,
@@ -20,6 +23,7 @@ object AudioController {
 
     private var inputDeviceId: Int = DEFAULT_DEVICE_ID
     private var outputDeviceId: Int = DEFAULT_DEVICE_ID
+    private var preferredSampleRate: Int = DEFAULT_SAMPLE_RATE
 
     fun selectInput(deviceId: Int) {
         inputDeviceId = deviceId
@@ -28,6 +32,21 @@ object AudioController {
     fun selectOutput(deviceId: Int) {
         outputDeviceId = deviceId
     }
+
+    /**
+     * Memilih sample rate (BAB 15). Bila audio sedang berjalan, stream
+     * dihentikan dan dimulai ulang agar rate baru benar-benar dipakai.
+     */
+    fun setPreferredSampleRate(sampleRate: Int): Status {
+        preferredSampleRate = sampleRate
+        NativeBridge.setPreferredSampleRate(sampleRate)
+        return if (NativeBridge.isRunning()) start() else refresh()
+    }
+
+    fun selectedSampleRate(): Int = preferredSampleRate
+
+    /** Sample rate stream yang sedang berjalan, 0 bila belum berjalan. */
+    fun sampleRate(): Int = NativeBridge.sampleRate()
 
     /**
      * Mengganti input lalu menerapkannya segera. Bila audio sedang berjalan,
@@ -86,6 +105,7 @@ object AudioController {
 
     fun start(): Status {
         NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
+        NativeBridge.setPreferredSampleRate(preferredSampleRate)
         val message = NativeBridge.start()
         return current(message)
     }

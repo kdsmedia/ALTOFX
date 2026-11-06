@@ -79,6 +79,18 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetDeviceIds(JNIEnv * /
     engine().setDeviceIds(inputDeviceId, outputDeviceId);
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetPreferredSampleRate(
+        JNIEnv * /*env*/, jobject /*thiz*/, jint sampleRate) {
+    engine().setPreferredSampleRate(sampleRate);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativePreferredSampleRate(
+        JNIEnv * /*env*/, jobject /*thiz*/) {
+    return engine().preferredSampleRate();
+}
+
 extern "C" JNIEXPORT jfloat JNICALL
 Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeInputLevel(JNIEnv * /*env*/,
                                                                     jobject /*thiz*/) {

@@ -46,6 +46,17 @@ object NativeBridge {
         if (isLoaded) nativeSetDeviceIds(inputDeviceId, outputDeviceId)
     }
 
+    /**
+     * Sample rate yang diinginkan (BAB 15). Bila perangkat mendukung, stream
+     * dibuka pada rate ini; bila tidak, stream memakai rate bawaan perangkat
+     * dan [sampleRate] melaporkan rate sebenarnya.
+     */
+    fun setPreferredSampleRate(sampleRate: Int) {
+        if (isLoaded) nativeSetPreferredSampleRate(sampleRate)
+    }
+
+    fun preferredSampleRate(): Int = if (isLoaded) nativePreferredSampleRate() else 48000
+
     // ---- Level & diagnostik (BAB 6) ----
 
     /** Level puncak blok input terakhir, 0..1 linier. */
@@ -235,6 +246,10 @@ object NativeBridge {
     private external fun nativeFramesPerBurst(): Int
 
     private external fun nativeSetDeviceIds(inputDeviceId: Int, outputDeviceId: Int)
+
+    private external fun nativeSetPreferredSampleRate(sampleRate: Int)
+
+    private external fun nativePreferredSampleRate(): Int
 
     private external fun nativeInputLevel(): Float
 

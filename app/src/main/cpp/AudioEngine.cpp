@@ -14,7 +14,6 @@ namespace {
 // Gitar bersifat mono; output stereo agar kompatibel dengan headphone/amp.
 constexpr int32_t kInputChannels = 1;
 constexpr int32_t kOutputChannels = 2;
-constexpr int32_t kPreferredSampleRate = 48000;
 }  // namespace
 
 AudioEngine::AudioEngine() = default;
@@ -45,7 +44,7 @@ oboe::Result AudioEngine::openStreams() {
             ->setSharingMode(oboe::SharingMode::Exclusive)
             ->setFormat(oboe::AudioFormat::Float)
             ->setChannelCount(kOutputChannels)
-            ->setSampleRate(kPreferredSampleRate)
+            ->setSampleRate(preferredSampleRate_.load())
             ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
             ->setDataCallback(this)
             ->setErrorCallback(this);

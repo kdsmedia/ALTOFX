@@ -138,6 +138,20 @@ public:
         outputDeviceId_.store(outputDeviceId);
     }
 
+    /**
+     * Sample rate yang diinginkan (BAB 15). Oboe akan memakai nilai ini bila
+     * didukung perangkat; bila tidak, stream dibuka pada rate bawaan perangkat
+     * dan [sampleRate] melaporkan rate sebenarnya. Berlaku pada pembukaan
+     * stream berikutnya.
+     */
+    void setPreferredSampleRate(int32_t sampleRate) {
+        if (sampleRate > 0) {
+            preferredSampleRate_.store(sampleRate);
+        }
+    }
+
+    int32_t preferredSampleRate() const { return preferredSampleRate_.load(); }
+
     std::string version() const;
 
     // oboe::FullDuplexStream
@@ -158,6 +172,7 @@ private:
     std::atomic<int32_t> channelCount_{0};
     std::atomic<int32_t> inputDeviceId_{-1};
     std::atomic<int32_t> outputDeviceId_{-1};
+    std::atomic<int32_t> preferredSampleRate_{48000};
     std::atomic<float> inputLevel_{0.0f};
     std::atomic<float> outputLevel_{0.0f};
     std::atomic<int64_t> callbackCount_{0};

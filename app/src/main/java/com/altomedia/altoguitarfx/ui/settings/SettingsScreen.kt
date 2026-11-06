@@ -144,6 +144,54 @@ fun SettingsScreen() {
         }
 
         PanelCard(
+            title = "Sample Rate",
+            modifier = Modifier.padding(top = 12.dp)
+        ) {
+            // Rate yang didukung diambil dari perangkat output terpilih.
+            val available = remember(outputs, selectedOutput) {
+                val device = outputs.firstOrNull { it.id == selectedOutput }
+                val fromDevice = device?.sampleRates
+                    ?.filter { it in 8000..192000 }
+                    ?.distinct()
+                    ?.sorted()
+                    .orEmpty()
+                if (fromDevice.isNotEmpty()) fromDevice else listOf(44100, 48000)
+            }
+            var chosen by remember { mutableStateOf(AudioController.selectedSampleRate()) }
+            var activeRate by remember { mutableStateOf(AudioController.sampleRate()) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    activeRate = AudioController.sampleRate()
+                    delay(500)
+                }
+            }
+            Text(
+                text = "Rate stream aktif: " +
+                    if (activeRate > 0) "$activeRate Hz" else "belum berjalan",
+                color = if (activeRate > 0) Accent else TextSecondary,
+                fontSize = 13.sp
+            )
+            Text(
+                text = "Rate yang didukung perangkat output terpilih. Bila rate " +
+                    "pilihan tidak didukung, stream memakai rate bawaan perangkat.",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            available.forEach { rate ->
+                DeviceRow(
+                    label = "$rate Hz",
+                    detail = if (rate == activeRate) "sedang dipakai" else "",
+                    selected = chosen == rate,
+                    onClick = {
+                        chosen = rate
+                        AudioController.setPreferredSampleRate(rate)
+                    }
+                )
+            }
+        }
+
+        PanelCard(
             title = "Status",
             modifier = Modifier.padding(top = 12.dp)
         ) {
