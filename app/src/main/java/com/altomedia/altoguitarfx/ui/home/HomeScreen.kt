@@ -91,7 +91,7 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
         status = if (granted) {
             AudioController.start()
         } else {
-            status.copy(message = "Izin mikrofon ditolak")
+            status.copy(message = "Izin mikrofon ditolak. Aktifkan lewat Settings.")
         }
     }
 

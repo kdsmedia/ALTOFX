@@ -86,11 +86,33 @@ fun SettingsScreen() {
                 modifier = Modifier.padding(top = 4.dp)
             )
             if (!micGranted) {
-                OutlinedButton(
-                    onClick = { permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) },
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Text("Minta Izin Mikrofon")
+                    OutlinedButton(
+                        onClick = {
+                            permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                        }
+                    ) {
+                        Text("Minta Izin Mikrofon")
+                    }
+                    // Bila izin ditolak permanen, dialog tidak muncul lagi;
+                    // arahkan pengguna ke pengaturan aplikasi (blueprint bagian 6).
+                    OutlinedButton(
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(
+                                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    android.net.Uri.fromParts(
+                                        "package", context.packageName, null
+                                    )
+                                )
+                            )
+                        }
+                    ) {
+                        Text("Buka Pengaturan Aplikasi")
+                    }
                 }
             }
         }
