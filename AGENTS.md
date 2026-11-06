@@ -70,6 +70,10 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 15 — Pengaturan audio, routing, lifecycle, error handling
 - [x] BAB 16 — Optimasi performa & pengukuran latensi
 - [x] BAB 17 — Build release & signing APK (keystore aman)
+- [x] Pasca-BAB 17 — Gap-fill blueprint: mute & bypass keseluruhan, perbaikan
+      klik preset (smoothing EQ), preset aktif di Home, pemilih input/output
+      cepat, strip pedalboard, pesan input kosong + saran headphone, panel izin,
+      penanganan perangkat terputus, info versi nyata. Uji integrasi 12 efek.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.
@@ -81,7 +85,9 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Build debug: `source ~/.android_env.sh && ./gradlew assembleDebug`
 - Build release (bertanda tangan): `./gradlew assembleRelease` (kredensial dari `keystore.properties`, lihat `RELEASE.md`)
 - Uji DSP di host (tanpa perangkat): `bash app/src/main/cpp/tests/run_tests.sh`
-  - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf.
+  - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf, integration.
+  - `integration_test`: 12 efek aktif sekaligus, blok 128 frame, bypass dry
+    identik, mute halus, perubahan parameter & urutan saat berjalan.
 - Verifikasi tanda tangan APK: `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
 
 ## Catatan penting
@@ -92,3 +98,9 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Parameter DSP diubah dari UI lewat atomik; jangan menyentuh objek DSP dari dua thread.
 - Preset disimpan sebagai JSON di SharedPreferences (`PresetRepository`).
 - `keystore.properties` dan `*.jks` tidak boleh di-commit.
+- Perubahan parameter yang bisa mendadak (mis. memuat preset) WAJIB dihaluskan
+  per sampel lewat `SmoothedParam`; uji `eq_test` memuat kasus 'Preset jump'.
+- Mute master ada di `GainStage` (target efektif 0 dengan perataan); bypass
+  keseluruhan ada di `EffectChain` (meneruskan sinyal dry apa adanya).
+- Perangkat aktif yang dicabut ditangani di `MainActivity` (AudioDeviceCallback)
+  lewat `AudioController.handleInputDisconnected/handleOutputDisconnected`.
