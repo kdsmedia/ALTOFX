@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import com.altomedia.altoguitarfx.audio.AudioController
 import com.altomedia.altoguitarfx.audio.AudioDeviceManager
 import com.altomedia.altoguitarfx.audio.NativeBridge
+import com.altomedia.altoguitarfx.audio.UsbAudioPermission
 import com.altomedia.altoguitarfx.data.ActivePresetStore
 import com.altomedia.altoguitarfx.data.PresetRepository
 import com.altomedia.altoguitarfx.effects.EffectController
@@ -399,6 +400,52 @@ private fun RoutingPanel(
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 6.dp)
             )
+        }
+
+        // USB Audio Interface (iRig): status izin USB nyata dari sistem.
+        val usbDevices = remember(inputs, outputs) {
+            UsbAudioPermission.audioDevices(context)
+        }
+        if (usbDevices.isNotEmpty()) {
+            Text(
+                text = "USB Audio Interface",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 10.dp)
+            )
+            usbDevices.forEach { device ->
+                var granted by remember(device.deviceName) {
+                    mutableStateOf(UsbAudioPermission.hasPermission(context, device))
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = device.productName ?: device.deviceName,
+                            color = if (granted) Accent else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = if (granted) "Izin USB diberikan" else "Izin USB diperlukan",
+                            color = if (granted) TextSecondary else Danger,
+                            fontSize = 11.sp
+                        )
+                    }
+                    if (!granted) {
+                        OutlinedButton(
+                            onClick = {
+                                UsbAudioPermission.request(context, device) { ok -> granted = ok }
+                            }
+                        ) {
+                            Text("Izinkan")
+                        }
+                    }
+                }
+            }
         }
     }
 }

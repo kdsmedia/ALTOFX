@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Filter perangkat USB untuk ALTO GUITAR FX (BAB 10).
+  Hanya kelas audio (USB Audio Class) yang cocok, yaitu USB Audio Interface
+  seperti iRig. Dengan filter ini Android dapat menawarkan izin akses USB
+  saat interface dipasang.
+-->
+<resources>
+    <usb-device class="1" />
+</resources>

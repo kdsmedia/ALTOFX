@@ -167,6 +167,57 @@ int main() {
         pass += ok; total++;
     }
 
+    // 7) Stabilitas jangka panjang: 60 detik audio pada blok 128 dengan 12 efek.
+    //    Mendeteksi NaN/Inf, ledakan level, atau penyimpangan DC yang menumpuk.
+    {
+        EffectChain c; c.prepare(sr, ch); enableAll(c); setDefaults(c);
+        const int totalFrames = static_cast<int>(sr) * 60;  // 60 detik
+        const int block = 128;
+        std::vector<float> buf(block * ch);
+        std::vector<float> src(block * ch);
+        std::mt19937 rng(7);
+        std::uniform_real_distribution<float> noise(-0.02f, 0.02f);
+        bool finite = true;
+        float peak = 0.0f;
+        double dcSum = 0.0;
+        long long dcCount = 0;
+        int callbacks = 0;
+        for (int off = 0; off < totalFrames; off += block) {
+            const int n = std::min(block, totalFrames - off);
+            // Sinyal petikan berganti-ganti, seperti gitar dimainkan.
+            const double t0 = off / sr;
+            const double f0 = (callbacks / 200) % 2 == 0 ? 82.41 : 146.83;
+            for (int i = 0; i < n; ++i) {
+                const double t = t0 + i / sr;
+                const double env = std::exp(-2.0 * std::fmod(t, 2.0));
+                const double v = std::sin(2 * M_PI * f0 * t) + 0.4 * std::sin(4 * M_PI * f0 * t);
+                const float sample = static_cast<float>(v * env * 0.35) + noise(rng);
+                src[i * ch] = sample;
+                src[i * ch + 1] = sample;
+            }
+            std::copy(src.begin(), src.begin() + n * ch, buf.begin());
+            // Sesekali ubah parameter seperti pemain memutar knob.
+            if (callbacks % 500 == 0) {
+                c.setParam(EffectType::Delay, 1, 0.2f + 0.3f * std::sin(callbacks * 0.01f));
+                c.setParam(EffectType::Reverb, 0, 0.2f + 0.2f * std::cos(callbacks * 0.01f));
+            }
+            c.process(buf.data(), n, ch);
+            for (int i = 0; i < n * ch; ++i) {
+                const float v = buf[i];
+                if (!std::isfinite(v)) { finite = false; break; }
+                peak = std::max(peak, std::fabs(v));
+                dcSum += v; dcCount++;
+            }
+            if (!finite) break;
+            callbacks++;
+        }
+        const double dcMean = dcCount > 0 ? dcSum / dcCount : 0.0;
+        bool ok = finite && peak < 10.0f && std::fabs(dcMean) < 0.05;
+        printf("Stabilitas 60s (%d callback): berhingga=%d puncak=%.4f dc=%.5f -> %s\n",
+               callbacks, finite, peak, dcMean, ok ? "OK" : "GAGAL");
+        pass += ok; total++;
+    }
+
     printf("\nIntegrasi: %d/%d lolos\n", pass, total);
     return pass == total ? 0 : 1;
 }
