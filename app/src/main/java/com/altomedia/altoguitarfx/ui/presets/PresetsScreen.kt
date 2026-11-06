@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.altomedia.altoguitarfx.data.Preset
 import com.altomedia.altoguitarfx.data.ActivePresetStore
+import com.altomedia.altoguitarfx.data.BuiltInPresets
 import com.altomedia.altoguitarfx.data.PresetRepository
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
@@ -44,6 +45,7 @@ fun PresetsScreen() {
     val activeName = ActivePresetStore.name
     var dialog by remember { mutableStateOf<PresetDialog?>(null) }
     var message by remember { mutableStateOf("") }
+    var confirmRestore by remember { mutableStateOf(false) }
 
     fun refresh() {
         presets = repository.load()
@@ -105,6 +107,26 @@ fun PresetsScreen() {
                 }
             }
 
+            // Restore default (blueprint bagian 6): hapus preset pengguna dan
+            // kembalikan preset aktif ke bawaan.
+            PanelCard(
+                title = "Restore Default",
+                modifier = Modifier.padding(bottom = 10.dp)
+            ) {
+                Text(
+                    text = "Menghapus seluruh preset pengguna dan memuat preset " +
+                        "bawaan CLEAN. Tindakan ini tidak dapat dibatalkan.",
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+                OutlinedButton(
+                    onClick = { confirmRestore = true },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Restore Default")
+                }
+            }
+
             presets.forEach { preset ->
                 PresetRow(
                     preset = preset,
@@ -135,6 +157,35 @@ fun PresetsScreen() {
                 )
             }
         }
+    }
+
+    if (confirmRestore) {
+        AlertDialog(
+            onDismissRequest = { confirmRestore = false },
+            title = { Text("Restore Default") },
+            text = {
+                Text(
+                    "Hapus semua preset pengguna dan kembalikan ke preset " +
+                        "bawaan CLEAN?"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    repository.clearUserPresets()
+                    val clean = BuiltInPresets.all().first()
+                    repository.apply(clean)
+                    ActivePresetStore.set(clean)
+                    refresh()
+                    message = "Preset dikembalikan ke bawaan."
+                    confirmRestore = false
+                }) {
+                    Text("Ya, Restore")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRestore = false }) { Text("Batal") }
+            }
+        )
     }
 
     dialog?.let { request ->
