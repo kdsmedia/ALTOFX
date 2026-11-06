@@ -85,9 +85,15 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Build debug: `source ~/.android_env.sh && ./gradlew assembleDebug`
 - Build release (bertanda tangan): `./gradlew assembleRelease` (kredensial dari `keystore.properties`, lihat `RELEASE.md`)
 - Uji DSP di host (tanpa perangkat): `bash app/src/main/cpp/tests/run_tests.sh`
-  - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf, integration.
+  - Cakupan: dsp, drive, eq, mod, space, order, pitch, gain, perf, level,
+    bypass, integration.
   - `integration_test`: 12 efek aktif sekaligus, blok 128 frame, bypass dry
-    identik, mute halus, perubahan parameter & urutan saat berjalan.
+    identik, mute halus, perubahan parameter & urutan saat berjalan, serta
+    stabilitas 60 detik.
+  - `level_test`: jalur master nyata (trim input -> efek -> level output ->
+    limiter) pada level rendah/tinggi/diam.
+  - `bypass_test`: tiap efek mengubah suara saat aktif dan identik bit-per-bit
+    saat bypass; plus kombinasi dua efek.
 - Verifikasi tanda tangan APK: `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
 
 ## Catatan penting
