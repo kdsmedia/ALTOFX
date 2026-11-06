@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,6 +10,29 @@ android {
     namespace = "com.altomedia.altoguitarfx"
     compileSdk = 34
     ndkVersion = "26.1.10909125"
+
+    // BAB 17: konfigurasi signing release. Kredensial dibaca dari berkas
+    // keystore.properties (tidak masuk version control). Bila berkas atau
+    // keystore tidak ada, build release jatuh ke debug signing agar tetap
+    // dapat dibangun di lingkungan tanpa keystore.
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    }
+    val hasReleaseKeystore = keystorePropertiesFile.exists() &&
+        rootProject.file(keystoreProperties.getProperty("storeFile", "")).exists()
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.altomedia.altoguitarfx"
@@ -44,6 +70,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // BAB 17: pakai keystore release bila tersedia, jika tidak pakai
+            // debug signing agar APK tetap dapat dibangun & diuji.
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

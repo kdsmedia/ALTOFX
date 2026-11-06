@@ -12,3 +12,7 @@ app/build/
 *.aab
 *.keystore
 !debug.keystore
+
+# BAB 17: kredensial signing release tidak masuk version control.
+keystore.properties
+*.jks
