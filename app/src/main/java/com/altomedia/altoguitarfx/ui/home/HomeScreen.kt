@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -217,6 +218,13 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                     onClick = {
                         muted = !muted
                         AudioController.setMuted(muted)
+                    },
+                    colors = if (muted) {
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        ButtonDefaults.outlinedButtonColors()
                     }
                 ) {
                     Text(if (muted) "Mute: ON" else "Mute: OFF")

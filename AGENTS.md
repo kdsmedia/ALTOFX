@@ -110,9 +110,13 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - Pemeriksaan memori DSP: `ASAN=1 bash app/src/main/cpp/tests/run_tests.sh`
   menjalankan seluruh suite dengan AddressSanitizer + UndefinedBehaviorSanitizer.
   Selalu jalankan ini setelah mengubah kode buffer/index DSP.
-- Pilihan perangkat & sample rate disimpan di SharedPreferences lewat
-  `AudioController.init(context)` (dipanggil dari MainActivity.onCreate). Jangan
-  menghapus panggilan init; tanpa itu pilihan tidak bertahan antar sesi.
+- Pengaturan yang bertahan antar sesi disimpan di SharedPreferences
+  (`alto_audio`) dan dimuat lewat `AudioController.init(context)` (dipanggil dari
+  MainActivity.onCreate): perangkat input/output, sample rate, referensi tuner
+  A4, trim input, gain output, dan mute. Jangan menghapus panggilan init; tanpa
+  itu pengaturan tidak bertahan dan mute bisa tampak tidak konsisten.
+- Mute master disimpan juga, jadi bila pengguna keluar saat mute aktif, UI
+  menampilkan Mute: ON pada sesi berikutnya (tombol diberi warna error).
 - Latensi terukur (BAB 16): `AudioEngine::measuredLatencyMs` memakai timestamp
   Oboe (`getTimestamp`) + `LatencyMath.h::roundTripLatencyMs`; nilai negatif
   berarti perangkat tidak melaporkan timestamp yang dapat dipercaya. Panel

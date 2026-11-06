@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.altomedia.altoguitarfx.audio.AudioController
 import com.altomedia.altoguitarfx.audio.NativeBridge
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
@@ -49,7 +50,8 @@ fun TunerScreen() {
     var midiNote by remember { mutableStateOf(-1f) }
     var cents by remember { mutableStateOf(0f) }
     var confidence by remember { mutableStateOf(0f) }
-    var reference by remember { mutableStateOf(440f) }
+    // Referensi tuning dipulihkan dari pengaturan tersimpan (BAB 14).
+    var reference by remember { mutableStateOf(AudioController.tunerReference()) }
     var referenceMenu by remember { mutableStateOf(false) }
 
     // Analisis hanya aktif saat layar tuner dibuka.
@@ -91,7 +93,7 @@ fun TunerScreen() {
                                 text = { Text("$value Hz") },
                                 onClick = {
                                     reference = value
-                                    NativeBridge.setTunerReference(value)
+                                    AudioController.setTunerReference(value)
                                     referenceMenu = false
                                 }
                             )

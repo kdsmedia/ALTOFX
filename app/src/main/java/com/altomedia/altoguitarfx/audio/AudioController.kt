@@ -17,6 +17,9 @@ object AudioController {
     /** Sample rate default sesuai blueprint Lampiran A. */
     const val DEFAULT_SAMPLE_RATE = 48000
 
+    /** Referensi tuning standar (A4 = 440 Hz, BAB 14). */
+    const val DEFAULT_TUNER_REFERENCE = 440f
+
     data class Status(
         val running: Boolean,
         val message: String,
@@ -45,6 +48,26 @@ object AudioController {
                 ?: DEFAULT_SAMPLE_RATE
         NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
         NativeBridge.setPreferredSampleRate(preferredSampleRate)
+        NativeBridge.setTunerReference(
+            store.getFloat(KEY_TUNER_REFERENCE, DEFAULT_TUNER_REFERENCE)
+        )
+        NativeBridge.setInputGainDb(store.getFloat(KEY_INPUT_GAIN_DB, 0f))
+        NativeBridge.setOutputGainDb(store.getFloat(KEY_OUTPUT_GAIN_DB, 0f))
+        NativeBridge.setMuted(store.getBoolean(KEY_MUTED, false))
+    }
+
+    /**
+     * Referensi tuning A4 yang tersimpan (BAB 14). Bertahan antar sesi
+     * seperti pilihan perangkat.
+     */
+    fun tunerReference(): Float =
+        prefs?.getFloat(KEY_TUNER_REFERENCE, DEFAULT_TUNER_REFERENCE)
+            ?: DEFAULT_TUNER_REFERENCE
+
+    /** Menyimpan referensi tuning A4 (BAB 14). */
+    fun setTunerReference(referenceHz: Float) {
+        prefs?.edit()?.putFloat(KEY_TUNER_REFERENCE, referenceHz)?.apply()
+        NativeBridge.setTunerReference(referenceHz)
     }
 
     fun selectInput(deviceId: Int) {
@@ -180,11 +203,17 @@ object AudioController {
         val lastError: String
     )
 
-    fun setInputGainDb(db: Float) = NativeBridge.setInputGainDb(db)
+    fun setInputGainDb(db: Float) {
+        prefs?.edit()?.putFloat(KEY_INPUT_GAIN_DB, db)?.apply()
+        NativeBridge.setInputGainDb(db)
+    }
 
     fun inputGainDb(): Float = NativeBridge.inputGainDb()
 
-    fun setOutputGainDb(db: Float) = NativeBridge.setOutputGainDb(db)
+    fun setOutputGainDb(db: Float) {
+        prefs?.edit()?.putFloat(KEY_OUTPUT_GAIN_DB, db)?.apply()
+        NativeBridge.setOutputGainDb(db)
+    }
 
     fun outputGainDb(): Float = NativeBridge.outputGainDb()
 
@@ -224,7 +253,10 @@ object AudioController {
 
     // ---- Mute & bypass keseluruhan (prinsip interaksi blueprint) ----
 
-    fun setMuted(muted: Boolean) = NativeBridge.setMuted(muted)
+    fun setMuted(muted: Boolean) {
+        prefs?.edit()?.putBoolean(KEY_MUTED, muted)?.apply()
+        NativeBridge.setMuted(muted)
+    }
 
     fun isMuted(): Boolean = NativeBridge.isMuted()
 
@@ -253,6 +285,10 @@ object AudioController {
     private const val KEY_INPUT_DEVICE = "input_device"
     private const val KEY_OUTPUT_DEVICE = "output_device"
     private const val KEY_SAMPLE_RATE = "sample_rate"
+    private const val KEY_TUNER_REFERENCE = "tuner_reference"
+    private const val KEY_INPUT_GAIN_DB = "input_gain_db"
+    private const val KEY_OUTPUT_GAIN_DB = "output_gain_db"
+    private const val KEY_MUTED = "muted"
 
 
     private fun current(message: String): Status = Status(
