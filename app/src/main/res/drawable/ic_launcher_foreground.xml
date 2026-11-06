@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder ikon adaptif: huruf "A" sederhana. Akan diganti aset final di BAB 17. -->
+<!-- Ikon final ALTO GUITAR FX (BAB 17): plectrum gitar di antara senar. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Senar gitar (baja) di belakang plectrum. -->
+    <path
+        android:strokeColor="#FF9AA7B4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M40,24 L40,84" />
+    <path
+        android:strokeColor="#FF9AA7B4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,24 L54,84" />
+    <path
+        android:strokeColor="#FF9AA7B4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M68,24 L68,84" />
+
+    <!-- Plectrum: segitiga membulat dengan ujung ke bawah. -->
     <path
         android:fillColor="#FF00E5A0"
-        android:pathData="M54,30 L72,78 L63,78 L58,63 L50,63 L45,78 L36,78 Z M52.5,55 L55.5,55 L54,47 Z" />
+        android:pathData="M38,46 Q35,40 42,39 L66,39 Q73,40 70,46 L58,76 Q54,83 50,76 Z" />
+
+    <!-- Lubang genggam kecil pada plectrum. -->
+    <path
+        android:fillColor="#FF0B0E11"
+        android:pathData="M54,50 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 </vector>
