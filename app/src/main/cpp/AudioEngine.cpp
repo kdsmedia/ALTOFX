@@ -85,6 +85,8 @@ oboe::Result AudioEngine::openStreams() {
 
     // Siapkan efek sesuai sample rate dan kanal output (BAB 7).
     effects_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
+    // Siapkan detektor pitch tuner (BAB 14) dengan sample rate stream.
+    pitch_.prepare(outputStream_->getSampleRate());
 
     sampleRate_.store(outputStream_->getSampleRate());
     channelCount_.store(outputStream_->getChannelCount());
@@ -155,6 +157,11 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
             output[frame * outChannels + channel] = sample;
         }
     }
+
+    // BAB 14: analisis pitch dari sinyal input mentah. Analisis hanya
+    // dijalankan ketika tuner aktif (setActive), sehingga tidak membebani
+    // CPU saat tuner tidak dibuka.
+    pitch_.process(input, frames, inChannels);
 
     // BAB 7: jalankan rangkaian efek (Noise Gate, Compressor, ...) pada blok
     // output. Hanya efek aktif yang diproses; tanpa alokasi atau lock.

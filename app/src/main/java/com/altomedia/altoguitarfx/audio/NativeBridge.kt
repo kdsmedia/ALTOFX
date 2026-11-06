@@ -108,6 +108,30 @@ object NativeBridge {
         if (isLoaded) nativeSetEffectOrder(order)
     }
 
+    // ---- Tuner / deteksi pitch (BAB 14) ----
+
+    /** Mengaktifkan analisis pitch; hanya saat layar tuner dibuka. */
+    fun setTunerActive(active: Boolean) {
+        if (isLoaded) nativeSetTunerActive(active)
+    }
+
+    /** Frekuensi dasar terakhir (Hz), 0 bila tidak ada nada. */
+    fun tunerFrequency(): Float = if (isLoaded) nativeTunerFrequency() else 0f
+
+    /** Nada MIDI terakhir (69 = A4), -1 bila tidak ada nada. */
+    fun tunerMidiNote(): Float = if (isLoaded) nativeTunerMidiNote() else -1f
+
+    /** Selisih dari nada terdekat dalam cents. */
+    fun tunerCents(): Float = if (isLoaded) nativeTunerCents() else 0f
+
+    /** Keyakinan deteksi 0..1. */
+    fun tunerConfidence(): Float = if (isLoaded) nativeTunerConfidence() else 0f
+
+    /** Mengatur referensi A4 dalam Hz (default 440). */
+    fun setTunerReference(referenceHz: Float) {
+        if (isLoaded) nativeSetTunerReference(referenceHz)
+    }
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String
@@ -155,4 +179,16 @@ object NativeBridge {
     private external fun nativeResetEffectOrder()
 
     private external fun nativeSetEffectOrder(order: IntArray)
+
+    private external fun nativeSetTunerActive(active: Boolean)
+
+    private external fun nativeTunerFrequency(): Float
+
+    private external fun nativeTunerMidiNote(): Float
+
+    private external fun nativeTunerCents(): Float
+
+    private external fun nativeTunerConfidence(): Float
+
+    private external fun nativeSetTunerReference(referenceHz: Float)
 }

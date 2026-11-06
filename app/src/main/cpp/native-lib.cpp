@@ -224,3 +224,43 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetEffectOrder(JNIEnv *
     }
     engine().effects().setOrder(target);
 }
+
+// ---- Tuner / deteksi pitch (BAB 14) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetTunerActive(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jboolean active) {
+    engine().pitch().setActive(active == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeTunerFrequency(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/) {
+    return engine().pitch().frequency();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeTunerMidiNote(JNIEnv * /*env*/,
+                                                                      jobject /*thiz*/) {
+    return engine().pitch().midiNote();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeTunerCents(JNIEnv * /*env*/,
+                                                                   jobject /*thiz*/) {
+    return engine().pitch().cents();
+}
+
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeTunerConfidence(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/) {
+    return engine().pitch().confidence();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetTunerReference(JNIEnv * /*env*/,
+                                                                          jobject /*thiz*/,
+                                                                          jfloat referenceHz) {
+    engine().pitch().setReferenceHz(referenceHz);
+}

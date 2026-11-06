@@ -21,6 +21,7 @@ add_library(altoguitarfx SHARED
         Tremolo.cpp
         Delay.cpp
         Reverb.cpp
+        PitchDetector.cpp
 )
 
 find_library(log-lib log)

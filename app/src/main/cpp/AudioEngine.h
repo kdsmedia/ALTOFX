@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Effects.h"
+#include "PitchDetector.h"
 
 namespace alto {
 
@@ -65,6 +66,9 @@ public:
     /** Akses ke rangkaian efek untuk pengaturan dari UI. */
     EffectChain& effects() { return effects_; }
 
+    /** Akses ke detektor pitch untuk tuner (BAB 14). */
+    PitchDetector& pitch() { return pitch_; }
+
     /**
      * Memilih perangkat input/output (BAB 5). ID berasal dari
      * AudioDeviceInfo.id pada sisi Android. Nilai -1 berarti perangkat default
@@ -100,6 +104,7 @@ private:
     std::atomic<int64_t> callbackCount_{0};
     std::atomic<int64_t> framesProcessed_{0};
     EffectChain effects_;
+    PitchDetector pitch_;
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
 };
 

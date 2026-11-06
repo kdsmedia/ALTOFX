@@ -66,7 +66,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 11 — Delay & Reverb (ruang/waktu)
 - [x] BAB 12 — Pengelola urutan efek & parameter (order dapat diubah)
 - [x] BAB 13 — Sistem preset (bawaan + pengguna)
-- [ ] BAB 14 — Tuner
+- [x] BAB 14 — Tuner (deteksi pitch YIN, referensi A4)
 - [ ] BAB 15 — Pengaturan audio, routing, lifecycle, error handling
 - [ ] BAB 16 — Optimasi performa & uji perangkat
 - [ ] BAB 17 — Build release & signing APK
