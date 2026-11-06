@@ -36,9 +36,10 @@ enum class EffectType : int {
 /**
  * Pengelola rangkaian efek (BAB 7+).
  *
- * Efek yang belum diimplementasikan bernilai null dan dilewati. Semua metode
- * pengaturan aman dipanggil dari thread UI; [process] dipanggil dari jalur
- * real-time dan tidak mengalokasi memori.
+ * Seluruh 12 efek sudah terpasang; pengecekan null tetap dipertahankan sebagai
+ * pertahanan bila suatu slot belum terisi. Semua metode pengaturan aman
+ * dipanggil dari thread UI; [process] dipanggil dari jalur real-time dan tidak
+ * mengalokasi memori.
  *
  * Urutan pemrosesan dapat diubah dari UI (BAB 12). Urutan disimpan sebagai
  * kode 4-bit per slot di dalam satu bilangan 64-bit atomik, sehingga audio
