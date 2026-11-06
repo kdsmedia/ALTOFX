@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.altomedia.altoguitarfx.audio.NativeBridge
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
@@ -26,6 +27,19 @@ fun SettingsScreen() {
                 color = TextSecondary,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+        PanelCard(
+            title = "Mesin Native (BAB 3)",
+            modifier = Modifier.padding(top = 12.dp)
+        ) {
+            Text(
+                text = if (NativeBridge.isLoaded)
+                    "Library native: OK\n${NativeBridge.version()}"
+                else
+                    "Library native gagal dimuat.",
+                color = TextSecondary,
+                fontSize = 13.sp
             )
         }
         PanelCard(

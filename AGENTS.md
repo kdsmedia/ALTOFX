@@ -55,7 +55,7 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
 - [x] BAB 0 — Toolchain + scaffold proyek (build sukses)
 - [x] BAB 1 — Proyek Android Studio, package, Gradle, tema dasar
 - [x] BAB 2 — Navigasi & kerangka layar (Home, Effects, Presets, Tuner, Settings)
-- [ ] BAB 3 — NDK, CMake, integrasi JNI
+- [x] BAB 3 — NDK, CMake, integrasi JNI (build native 3 ABI sukses)
 - [ ] BAB 4 — Oboe, buka input/output stream
 - [ ] BAB 5 — Pilih mikrofon internal & deteksi USB
 - [ ] BAB 6 — Audio callback & level meter

@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.altomedia.altoguitarfx"
     compileSdk = 34
+    ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "com.altomedia.altoguitarfx"
@@ -13,7 +14,26 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags += listOf("-std=c++17", "-fno-exceptions", "-fno-rtti")
+            }
+        }
+        ndk {
+            // arm64 untuk perangkat modern, armeabi-v7a untuk perangkat lama,
+            // x86_64 untuk emulator.
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
 
     buildTypes {
         release {
