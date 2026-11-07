@@ -40,7 +40,7 @@ enum class EffectType : int {
 /**
  * Pengelola rangkaian efek (BAB 7+).
  *
- * Seluruh 13 efek sudah terpasang; pengecekan null tetap dipertahankan sebagai
+ * Seluruh 14 efek sudah terpasang; pengecekan null tetap dipertahankan sebagai
  * pertahanan bila suatu slot belum terisi. Semua metode pengaturan aman
  * dipanggil dari thread UI; [process] dipanggil dari jalur real-time dan tidak
  * mengalokasi memori.
