@@ -175,8 +175,25 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
          lookahead 1,5 ms + perataan gain attack/release) sehingga keluaran
          tidak melewati batas tanpa distorsi kasar. Indikator clip output kini
          berarti "limiter bekerja".
-      Suite `autowah_test` + `antifeedback_test` + `limiter_test` ditambahkan.
-      17 suite DSP + ASAN lolos (FAIL=0), JNI 65/65, debug/release/AAB build
+- [x] Perbaikan "Overdrive/Distortion berisik & mendengung":
+      1) **Notch dengung lebih dalam** — `HumFilter` kini menjatuhkan DUA biquad
+         bertingkat pada 50/100/150 Hz (atau 60/120/180 Hz). Satu notch hanya
+         menekan ~30 dB; sisa dengung tetap terkuat puluhan kali oleh saturasi.
+         Harmonisa ketiga (150 Hz) ditambahkan karena berada di rentang rendah
+         gitar dan membuat noise gate tidak pernah menutup saat diam.
+      2) **High-pass di jalur efek** — `DriveEffect` memasang high-pass 80 Hz
+         sebelum saturasi dan 70 Hz setelahnya, membuang rumble/dengung
+         frekuensi rendah agar tidak dikuatkan menjadi "berisik".
+      3) **Skala drive diturunkan + taper eksponensial** (Overdrive 200→50,
+         Distortion 800→300, Fuzz 2000→700; `gain = scale^drive`) agar rentang
+         knob berguna: dari nyaris bersih di drive rendah hingga terjenuh penuh
+         di drive tinggi (THD 0,00→0,38). Sebelumnya sinyal sudah terklip pada
+         SEMUA setelan sehingga knob tidak berpengaruh dan suara selalu kasar.
+      4) Hasil terukur (gitar 220 Hz + dengung 50/100/150 Hz + derau):
+         saat diam rms turun dari ~0,38/0,64/0,56 menjadi ~0,0004/0,0015/0,0038
+         (150–1600× di bawah level saat bermain); dengung 50 Hz turun ~600×.
+      Suite `drive_noise_test` ditambahkan (kebersihan saturasi saat diam).
+      18 suite DSP + ASAN lolos (FAIL=0), JNI 65/65, debug/release/AAB build
       sukses, APK rilis tertanda tangan ALTOMEDIA.
 
 ## Konvensi kode

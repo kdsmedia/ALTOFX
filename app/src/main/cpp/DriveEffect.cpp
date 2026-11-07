@@ -10,6 +10,13 @@ constexpr float kToneLowHz = 600.0f;
 constexpr float kToneHighHz = 9000.0f;
 constexpr float kToneQ = 0.707f;
 
+// High-pass jalur efek. Membuang rumble/dengung frekuensi rendah SEBELUM
+// saturasi; tanpa ini, dengung (50/60 Hz dan harmonisanya) dan getaran
+// frekuensi rendah ikut dikuatkan puluhan kali sehingga terdengar "berisik".
+constexpr float kInputHighPassHz = 80.0f;
+constexpr float kOutputHighPassHz = 70.0f;
+constexpr float kHighPassQ = 0.707f;
+
 inline float toneToCutoff(float tone) {
     float t = tone < 0.0f ? 0.0f : (tone > 1.0f ? 1.0f : tone);
     return kToneLowHz * std::pow(kToneHighHz / kToneLowHz, t);
@@ -32,7 +39,11 @@ void DriveEffect::prepare(double sampleRate, int32_t channels) {
     oversampler_.prepare(sampleRate, channels);
     updateToneFilter(param(1));
     for (int32_t c = 0; c < kMaxChannels; ++c) {
+        inputHighPass_[c].setHighPass(static_cast<float>(sampleRate), kInputHighPassHz, kHighPassQ);
+        outputHighPass_[c].setHighPass(static_cast<float>(sampleRate), kOutputHighPassHz, kHighPassQ);
         toneFilter_[c].reset();
+        inputHighPass_[c].reset();
+        outputHighPass_[c].reset();
         dcBlocker_[c].reset();
     }
 }
@@ -42,6 +53,8 @@ void DriveEffect::reset() {
     oversampler_.reset();
     for (int32_t c = 0; c < kMaxChannels; ++c) {
         toneFilter_[c].reset();
+        inputHighPass_[c].reset();
+        outputHighPass_[c].reset();
         dcBlocker_[c].reset();
     }
 }
@@ -71,13 +84,19 @@ void DriveEffect::process(float* buffer, int32_t frames, int32_t channels) {
         const float drive = drive_.next();
         const float tone = tone_.next();
         const float level = level_.next();
-        const float gain = 1.0f + drive * driveScale_;
+        // Taper eksponensial: gain = scale^drive. Memberi rentang bersih yang
+        // berguna di setengah bawah knob (drive 0 nyaris bersih, drive 1 jenuh
+        // penuh), alih-alih terklip sejak setelan kecil seperti taper linier.
+        const float gain = std::pow(driveScale_, drive);
         if ((frame & 31) == 0) {
             updateToneFilter(tone);
         }
 
         for (int32_t channel = 0; channel < channels; ++channel) {
-            float sample = buffer[frame * channels + channel] * gain;
+            // High-pass sebelum saturasi: buang rumble/dengung frekuensi rendah
+            // agar tidak dikuatkan puluhan kali menjadi "berisik".
+            float sample = inputHighPass_[channel].process(buffer[frame * channels + channel]);
+            sample *= gain;
 
             // Waveshaping pada laju 2x untuk menekan aliasing (anti "pecah").
             float a = 0.0f;
@@ -101,6 +120,9 @@ void DriveEffect::process(float* buffer, int32_t frames, int32_t channels) {
 
             sample = toneFilter_[channel].process(sample);
             sample = dcBlocker_[channel].process(sample);
+            // High-pass keluaran membuang sisa frekuensi rendah/dengung yang
+            // timbul dari proses saturasi (intermodulasi).
+            sample = outputHighPass_[channel].process(sample);
             buffer[frame * channels + channel] = sample * level;
         }
     }

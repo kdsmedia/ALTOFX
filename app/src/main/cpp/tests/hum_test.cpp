@@ -32,7 +32,7 @@ int main() {
     const int blocks = 40;  // ~4 detik agar notch sempit mencapai tunak
     int pass = 0, total = 0;
 
-    // 1) Dengung 50 Hz (dan harmonisa 100 Hz) diredam, nada gitar 220 Hz lolos.
+    // 1) Dengung 50 Hz (dan harmonisa 100/150 Hz) diredam, nada gitar 220 Hz lolos.
     {
         HumFilter filter;
         filter.prepare(sr, 1);
@@ -42,13 +42,17 @@ int main() {
         filter.reset();
         const double hum100 = rmsAt(sr, 100.0, filter, block, blocks);
         filter.reset();
+        const double hum150 = rmsAt(sr, 150.0, filter, block, blocks);
+        filter.reset();
         const double guitar = rmsAt(sr, 220.0, filter, block, blocks);
 
         // RMS sinus murni = 0.707; notch harus menekan jauh di bawah itu,
-        // sementara nada gitar hampir tidak berubah.
-        const bool ok = hum50 < 0.15 && hum100 < 0.35 && guitar > 0.6;
-        printf("HumFilter: 50Hz=%.3f 100Hz=%.3f 220Hz=%.3f -> %s\n",
-               hum50, hum100, guitar, ok ? "OK" : "GAGAL");
+        // sementara nada gitar hampir tidak berubah. Harmonisa ketiga (150 Hz)
+        // penting karena berada di rentang rendah gitar dan menguatkan dengung
+        // pada efek distorsi bila tidak dibuang.
+        const bool ok = hum50 < 0.15 && hum100 < 0.35 && hum150 < 0.15 && guitar > 0.6;
+        printf("HumFilter: 50Hz=%.3f 100Hz=%.3f 150Hz=%.3f 220Hz=%.3f -> %s\n",
+               hum50, hum100, hum150, guitar, ok ? "OK" : "GAGAL");
         pass += ok; total++;
     }
 

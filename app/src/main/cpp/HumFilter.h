@@ -26,12 +26,21 @@ public:
         if (channels_ > kMaxChannels) channels_ = kMaxChannels;
         const float sr = static_cast<float>(sampleRate);
 
-        // Notch pada frekuensi jala-jala dan harmonisa keduanya. Q tinggi agar
-        // hanya garis sempit yang teredam, nada gitar tetap utuh.
+        // Notch pada frekuensi jala-jala dan harmonisa ganjilnya (50/100/150 Hz
+        // atau 60/120/180 Hz). Harmonisa ketiga (150 Hz) sering paling kuat dan
+        // berada di rentang rendah gitar, jadi harus dibuang agar noise gate
+        // dapat menutup saat diam dan distorsi tidak "mendengung". Dua biquad
+        // dijatuhkan bertingkat (cascade) agar redaman jauh lebih dalam — satu
+        // notch saja hanya menekan ~30 dB, tidak cukup karena efek distorsi
+        // menguatkan sisa dengung puluhan kali.
         const float base = humHz_;
         for (int32_t c = 0; c < channels_; ++c) {
             notch50_[c].setNotch(sr, base, 30.0f);
+            notch50b_[c].setNotch(sr, base, 30.0f);
             notch100_[c].setNotch(sr, base * 2.0f, 30.0f);
+            notch100b_[c].setNotch(sr, base * 2.0f, 30.0f);
+            notch150_[c].setNotch(sr, base * 3.0f, 30.0f);
+            notch150b_[c].setNotch(sr, base * 3.0f, 30.0f);
             highPass_[c].setHighPass(sr, kHighPassHz, 0.707f);
         }
         reset();
@@ -50,7 +59,11 @@ public:
         const float sr = static_cast<float>(sampleRate_);
         for (int32_t c = 0; c < channels_; ++c) {
             notch50_[c].setNotch(sr, humHz_, 30.0f);
+            notch50b_[c].setNotch(sr, humHz_, 30.0f);
             notch100_[c].setNotch(sr, humHz_ * 2.0f, 30.0f);
+            notch100b_[c].setNotch(sr, humHz_ * 2.0f, 30.0f);
+            notch150_[c].setNotch(sr, humHz_ * 3.0f, 30.0f);
+            notch150b_[c].setNotch(sr, humHz_ * 3.0f, 30.0f);
         }
     }
 
@@ -59,7 +72,11 @@ public:
     void reset() {
         for (int32_t c = 0; c < kMaxChannels; ++c) {
             notch50_[c].reset();
+            notch50b_[c].reset();
             notch100_[c].reset();
+            notch100b_[c].reset();
+            notch150_[c].reset();
+            notch150b_[c].reset();
             highPass_[c].reset();
             dcBlocker_[c].reset();
         }
@@ -73,7 +90,11 @@ public:
                 sample = dcBlocker_[c].process(sample);
                 sample = highPass_[c].process(sample);
                 sample = notch50_[c].process(sample);
+                sample = notch50b_[c].process(sample);
                 sample = notch100_[c].process(sample);
+                sample = notch100b_[c].process(sample);
+                sample = notch150_[c].process(sample);
+                sample = notch150b_[c].process(sample);
             }
         }
     }
@@ -86,7 +107,11 @@ private:
     int32_t channels_ = 1;
     float humHz_ = 50.0f;
     Biquad notch50_[kMaxChannels];
+    Biquad notch50b_[kMaxChannels];
     Biquad notch100_[kMaxChannels];
+    Biquad notch100b_[kMaxChannels];
+    Biquad notch150_[kMaxChannels];
+    Biquad notch150b_[kMaxChannels];
     Biquad highPass_[kMaxChannels];
     DcBlocker dcBlocker_[kMaxChannels];
 };

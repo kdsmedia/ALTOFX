@@ -21,15 +21,16 @@ EffectChain::EffectChain() {
     // BAB 7: efek dinamika.
     effects_[static_cast<size_t>(EffectType::NoiseGate)] = std::make_unique<NoiseGate>();
     effects_[static_cast<size_t>(EffectType::Compressor)] = std::make_unique<Compressor>();
-    // BAB 8: efek saturasi/gain. Skala drive dinaikkan agar sinyal tetap
-    // terjenuh selama nada meluruh (khas gitar) — bukan hanya pada serangan
-    // awal. Tanpa ini, distorsi "memudar" kembali menjadi suara bersih.
+    // BAB 8: efek saturasi/gain. Skala drive dipilih agar rentang knob tetap
+    // berguna (dari nyaris bersih di drive rendah hingga terjenuh penuh di drive
+    // tinggi). Skala yang terlalu besar membuat sinyal terklip pada SEMUA
+    // setelan sehingga knob tidak berpengaruh dan suara selalu kasar ("berisik").
     effects_[static_cast<size_t>(EffectType::Overdrive)] = std::make_unique<DriveEffect>(
-            "Overdrive", DriveEffect::Shape::SoftTanh, 200.0f);
+            "Overdrive", DriveEffect::Shape::SoftTanh, 50.0f);
     effects_[static_cast<size_t>(EffectType::Distortion)] = std::make_unique<DriveEffect>(
-            "Distortion", DriveEffect::Shape::HardClip, 800.0f);
+            "Distortion", DriveEffect::Shape::HardClip, 300.0f);
     effects_[static_cast<size_t>(EffectType::Fuzz)] = std::make_unique<DriveEffect>(
-            "Fuzz", DriveEffect::Shape::Fuzz, 2000.0f);
+            "Fuzz", DriveEffect::Shape::Fuzz, 700.0f);
     // Model amplifier bergaya Tonebridge (preamp + tone stack + kabinet).
     effects_[static_cast<size_t>(EffectType::Amp)] = std::make_unique<AmpModel>();
     // BAB 9: equalizer 3-band.

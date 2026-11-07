@@ -91,7 +91,7 @@ app/src/main/
 │   ├── effects/                   # EffectType (katalog), EffectController
 │   └── data/                      # Preset, PresetRepository, BuiltInPresets
 ├── cpp/                           # AudioEngine, Effects, seluruh DSP efek, JNI
-│   └── tests/                     # 17 suite uji host (tanpa perangkat)
+│   └── tests/                     # 18 suite uji host (tanpa perangkat)
 └── res/                           # tema, ikon launcher, filter perangkat USB
 ```
 
@@ -129,7 +129,7 @@ masuk version control. APK release ditandatangani dengan keystore release nyata
 ## Pengujian
 
 ```bash
-# 17 suite DSP di host (tanpa perangkat)
+# 18 suite DSP di host (tanpa perangkat)
 bash app/src/main/cpp/tests/run_tests.sh
 
 # Ditambah AddressSanitizer + UndefinedBehaviorSanitizer

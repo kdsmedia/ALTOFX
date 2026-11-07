@@ -47,7 +47,9 @@ private:
     SmoothedParam level_;
     AdaaSaturator saturator_;
     Oversampler2x oversampler_;
+    Biquad inputHighPass_[kMaxChannels];
     Biquad toneFilter_[kMaxChannels];
+    Biquad outputHighPass_[kMaxChannels];
     DcBlocker dcBlocker_[kMaxChannels];
 };
 
