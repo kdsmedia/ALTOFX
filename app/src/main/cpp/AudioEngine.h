@@ -13,6 +13,7 @@
 #include "GainStage.h"
 #include "HumFilter.h"
 #include "AntiFeedback.h"
+#include "Limiter.h"
 #include "PerformanceMonitor.h"
 #include "PitchDetector.h"
 
@@ -119,7 +120,10 @@ public:
     bool ducked() const { return ducked_.load(); }
 
     /** Batas atas level keluaran (limiter) dalam desibel, default 0 dBFS. */
-    void setLimiterCeilingDb(float db) { limiterCeilingDb_.store(db); }
+    void setLimiterCeilingDb(float db) {
+        limiterCeilingDb_.store(db);
+        limiterPending_.store(true);
+    }
 
     float limiterCeilingDb() const { return limiterCeilingDb_.load(); }
 
@@ -253,6 +257,8 @@ private:
     std::atomic<bool> inputClipping_{false};
     std::atomic<bool> outputClipping_{false};
     std::atomic<float> limiterCeilingDb_{0.0f};
+    std::atomic<bool> limiterPending_{true};
+    Limiter limiter_;
     std::atomic<bool> ducked_{false};
     GainStage duckGain_;
     static constexpr float kDuckDb = -12.0f;

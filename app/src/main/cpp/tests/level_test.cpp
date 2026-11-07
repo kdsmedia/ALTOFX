@@ -1,5 +1,6 @@
 #include "Effects.h"
 #include "GainStage.h"
+#include "Limiter.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -8,7 +9,7 @@
 using namespace alto;
 
 // Mereplikasi jalur master nyata di AudioEngine::onBothStreamsReady:
-// trim input -> rantai efek -> level output -> limiter pengaman (clamp ceiling).
+// trim input -> rantai efek -> level output -> limiter puncak lookahead.
 static void runMasterPath(
     std::vector<float>& buffer,
     int frames,
@@ -34,12 +35,8 @@ static void runMasterPath(
     chain.process(buffer.data(), frames, channels);
     outputGain.process(buffer.data(), frames, channels);
 
-    const float ceiling = GainStage::dbToLinear(ceilingDb);
-    for (int i = 0; i < frames * channels; ++i) {
-        float& s = buffer[i];
-        if (s > ceiling) s = ceiling;
-        else if (s < -ceiling) s = -ceiling;
-    }
+    Limiter limiter; limiter.prepare(48000.0, channels, ceilingDb);
+    limiter.process(buffer.data(), frames, channels);
 }
 
 static std::vector<float> sine(int frames, int channels, double amplitude, double freq) {

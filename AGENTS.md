@@ -168,9 +168,16 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       6) **Pembukaan input** — ditambah percobaan `Unprocessed` pada
          Exclusive/LowLatency setelah `Generic`, memperluas peluang stream
          input terbuka pada perangkat yang menolak preset tertentu.
-      Suite `autowah_test` + `antifeedback_test` ditambahkan. 16 suite DSP +
-      ASAN lolos (FAIL=0), JNI 65/65, debug/release/AAB build sukses, APK rilis
-      tertanda tangan ALTOMEDIA.
+      7) **Limiter puncak lookahead** (`Limiter.h`) menggantikan potong keras
+         (hard clip) di jalur keluaran master. Pada level output tinggi
+         (+12 dB bawaan) potong keras memangkas puncak mendadak sehingga
+         terdengar "pecah"; limiter menahan puncak secara halus (tunda
+         lookahead 1,5 ms + perataan gain attack/release) sehingga keluaran
+         tidak melewati batas tanpa distorsi kasar. Indikator clip output kini
+         berarti "limiter bekerja".
+      Suite `autowah_test` + `antifeedback_test` + `limiter_test` ditambahkan.
+      17 suite DSP + ASAN lolos (FAIL=0), JNI 65/65, debug/release/AAB build
+      sukses, APK rilis tertanda tangan ALTOMEDIA.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.

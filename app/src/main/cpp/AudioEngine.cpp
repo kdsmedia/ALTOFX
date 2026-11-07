@@ -207,6 +207,10 @@ oboe::Result AudioEngine::openStreams() {
     antiFeedback_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
     duckGain_.prepare(outputStream_->getSampleRate(), 30.0f);
     duckGain_.setTargetDb(ducked_.load() ? kDuckDb : 0.0f);
+    // Limiter puncak lookahead (BAB 15) menggantikan potong keras.
+    limiter_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount(),
+                     limiterCeilingDb_.load());
+    limiterPending_.store(false);
     // Siapkan pemantau performa callback (BAB 16).
     performance_.prepare(outputStream_->getSampleRate());
 
@@ -334,32 +338,30 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // output. Hanya efek aktif yang diproses; tanpa alokasi atau lock.
     effects_.process(output, frames, outChannels);
 
-    // Level output master + limiter (BAB 15). Limiter membatasi puncak ke
-    // batas yang ditetapkan sehingga mencegah clipping keras di perangkat.
+    // Level output master + limiter puncak lookahead (BAB 15). Limiter menahan
+    // puncak secara halus (bukan potong keras) sehingga mencegah clipping kasar
+    // yang terdengar "pecah" saat level output tinggi.
     outputGain_.process(output, frames, outChannels);
     // Ducking audio focus (BAB 15): level diturunkan sementara bila aplikasi
     // lain butuh perhatian, dengan perataan agar tidak menimbulkan klik.
     duckGain_.process(output, frames, outChannels);
-    const float ceiling = GainStage::dbToLinear(limiterCeilingDb_.load());
+    if (limiterPending_.exchange(false)) {
+        limiter_.setCeilingDb(limiterCeilingDb_.load());
+    }
+    limiter_.process(output, frames, outChannels);
     float outputPeak = 0.0f;
-    bool outputClip = false;
     for (int32_t frame = 0; frame < frames; ++frame) {
         for (int32_t channel = 0; channel < outChannels; ++channel) {
-            float& sample = output[frame * outChannels + channel];
-            if (sample > ceiling) {
-                sample = ceiling;
-                outputClip = true;
-            } else if (sample < -ceiling) {
-                sample = -ceiling;
-                outputClip = true;
-            }
+            const float sample = output[frame * outChannels + channel];
             const float magnitude = (sample < 0.0f) ? -sample : sample;
             if (magnitude > outputPeak) {
                 outputPeak = magnitude;
             }
         }
     }
-    outputClipping_.store(outputClip);
+    // Indikator "output clip" menyala saat limiter sedang menahan puncak
+    // (level keluaran sangat tinggi), bukan lagi tanda potong keras.
+    outputClipping_.store(limiter_.limiting());
 
     inputLevel_.store(inputPeak);
     outputLevel_.store(outputPeak);

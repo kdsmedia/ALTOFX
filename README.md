@@ -36,6 +36,9 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 - **Anti-Feedback** (penekan howling): mendeteksi nada yang menonjol dan
   bertahan lalu memasang notch sempit otomatis pada frekuensi itu. Dapat
   dinyalakan di Pengaturan (bawaan mati).
+- **Limiter puncak lookahead** pada keluaran master: menahan puncak secara
+  halus (bukan potong keras) sehingga level output tinggi tetap jernih dan
+  tidak "pecah".
 - **Antarmuka bergaya Tonebridge**: panel amplifier dengan knob putar
   (Gain, Bass, Mid, Treble, Presence, Master) dan pemilih voicing; setiap
   parameter efek juga diatur lewat knob. Model amplifier aktif secara bawaan
@@ -88,7 +91,7 @@ app/src/main/
 │   ├── effects/                   # EffectType (katalog), EffectController
 │   └── data/                      # Preset, PresetRepository, BuiltInPresets
 ├── cpp/                           # AudioEngine, Effects, seluruh DSP efek, JNI
-│   └── tests/                     # 14 suite uji host (tanpa perangkat)
+│   └── tests/                     # 17 suite uji host (tanpa perangkat)
 └── res/                           # tema, ikon launcher, filter perangkat USB
 ```
 
@@ -126,7 +129,7 @@ masuk version control. APK release ditandatangani dengan keystore release nyata
 ## Pengujian
 
 ```bash
-# 14 suite DSP di host (tanpa perangkat)
+# 17 suite DSP di host (tanpa perangkat)
 bash app/src/main/cpp/tests/run_tests.sh
 
 # Ditambah AddressSanitizer + UndefinedBehaviorSanitizer
@@ -161,7 +164,8 @@ latency, dan uji stabilitas jangka panjang.
   internal.
 - Atur **Trim Input** agar indikator clipping input tidak menyala.
 - Jaga beban puncak callback di bawah 80% (panel Performa & Latensi).
-- Aktifkan **Batas Limiter** (default 0 dBFS) untuk mencegah clipping keras.
+- **Batas Limiter** (default 0 dBFS) kini berupa limiter lookahead yang halus,
+  jadi tidak perlu dikurangi kecuali ingin menurunkan level keluaran master.
 
 ## Dokumentasi terkait
 
