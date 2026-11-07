@@ -36,7 +36,13 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
   rancangan parameter DSP (bukan sampel rekaman asli).
 - **Pedalboard bergaya pedal fisik**: setiap efek tampil sebagai kotak dengan
   LED dan tombol ON/OFF (sakelar kaki), tombol Preset cepat per efek, serta
-  halaman pengaturan terpisah per efek.
+  pengaturan parameter yang dibuka sebagai **popup dialog** di atas pedalboard
+  (tidak berpindah halaman). Popup berisi status ON/OFF, preset cepat, knob
+  parameter, dan pemindahan posisi efek dalam rantai.
+- **Peredam dengung (grounding)**: notch 50/60 Hz beserta harmonisanya,
+  high-pass 40 Hz, dan pembuang DC pada jalur input untuk menekan dengung
+  (hum) dari grounding/kabel/catu daya. Frekuensi dapat dipilih Off / 50 Hz /
+  60 Hz di Pengaturan (Indonesia 50 Hz).
 - **Noise Gate aktif secara bawaan** untuk menekan bising (hiss) saat perangkat
   dicolok; waktu tahan (hold) internal menjaga nada yang meluruh tidak terpotong.
 - **Urutan efek** dapat diubah dari UI (naik/turun, reset ke bawaan).
@@ -72,7 +78,7 @@ app/src/main/
 │   ├── effects/                   # EffectType (katalog), EffectController
 │   └── data/                      # Preset, PresetRepository, BuiltInPresets
 ├── cpp/                           # AudioEngine, Effects, seluruh DSP efek, JNI
-│   └── tests/                     # 13 suite uji host (tanpa perangkat)
+│   └── tests/                     # 14 suite uji host (tanpa perangkat)
 └── res/                           # tema, ikon launcher, filter perangkat USB
 ```
 
@@ -110,7 +116,7 @@ masuk version control. APK release ditandatangani dengan keystore release nyata
 ## Pengujian
 
 ```bash
-# 13 suite DSP di host (tanpa perangkat)
+# 14 suite DSP di host (tanpa perangkat)
 bash app/src/main/cpp/tests/run_tests.sh
 
 # Ditambah AddressSanitizer + UndefinedBehaviorSanitizer
@@ -124,7 +130,7 @@ bash scripts/verify_release.sh
 ```
 
 Suite host: `dsp`, `drive`, `eq`, `mod`, `space`, `order`, `pitch`, `gain`,
-`perf`, `level`, `bypass`, `catalog`, `integration`. `catalog_test` juga
+`perf`, `level`, `bypass`, `catalog`, `integration`, `hum`. `catalog_test` juga
 memverifikasi bahwa katalog UI (`EffectType.kt`) tetap sinkron dengan DSP C++.
 
 Pengujian yang membutuhkan perangkat nyata (blueprint bagian 12): mikrofon

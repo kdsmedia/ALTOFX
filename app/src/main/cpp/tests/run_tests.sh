@@ -8,7 +8,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 INC="$(dirname "$HERE")"
 ALL="$INC/Effects.cpp $INC/NoiseGate.cpp $INC/Compressor.cpp $INC/DriveEffect.cpp $INC/AmpModel.cpp $INC/Equalizer.cpp $INC/Chorus.cpp $INC/Flanger.cpp $INC/Phaser.cpp $INC/Tremolo.cpp $INC/Delay.cpp $INC/Reverb.cpp"
 fail=0
-for t in dsp_test drive_test eq_test mod_test space_test order_test pitch_test gain_test perf_test level_test bypass_test catalog_test integration_test; do
+for t in dsp_test drive_test eq_test mod_test space_test order_test pitch_test gain_test perf_test level_test bypass_test catalog_test integration_test hum_test; do
   echo "===== $t ====="
   SAN_FLAGS=""
   if [ "${ASAN:-0}" = "1" ]; then

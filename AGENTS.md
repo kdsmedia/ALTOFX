@@ -128,6 +128,22 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       gelap (scrim) agar teks/panel tetap terbaca; `Scaffold` transparan dan
       bilah navigasi semi-transparan. Panel (`PanelCard`) dibuat agak
       transparan agar gambar tetap terlihat.
+- [x] Pasca-rilis lanjutan — perbaikan "APK tidak berfungsi" + permintaan pengguna:
+      1) **Peredam dengung/grounding** — `HumFilter` baru (notch 50/60 Hz +
+         harmonisa, high-pass 40 Hz, DC blocker) di jalur input sebelum efek
+         saturasi; pilihan Off/50/60 Hz di Pengaturan (prefs `hum_filter_hz`);
+         koefisien diperbarui di thread audio (`humPending_`) sesuai aturan
+         real-time; suite `hum_test` ditambahkan.
+      2) **Pengaturan efek sebagai POPUP** — `EffectSettingsDialog` membuka
+         parameter satu efek di atas pedalboard; rute `effect/{id}` +
+         `EffectDetailScreen` dihapus.
+      3) **Tombol Start/Stop** tunggal di pojok kanan atas header Home (tetap
+         terlihat saat halaman di-scroll).
+      4) **Transparansi** — panel/tab/pedal/dialog memakai latar semi-transparan
+         agar gambar latar brand terlihat.
+      Ditambah: noise gate default diperkuat (-55 dB), impor `EffectSettingsDialog`
+      yang hilang diperbaiki. 14 suite DSP + ASAN lolos (FAIL=0), JNI 61/61,
+      debug/release/AAB build sukses, APK rilis tertanda tangan ALTOMEDIA.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.
@@ -231,3 +247,15 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   Untuk input headset, coba `InputPreset::VoiceRecognition` lebih dulu
   (membuka mikrofon TRRS), lalu `Generic`. Sinyal gitar tetap diutamakan lewat
   `Unprocessed` untuk mikrofon internal/USB.
+- Peredam dengung: `HumFilter` (notch 50/60 Hz + harmonisa, high-pass 40 Hz,
+  DC blocker) berjalan di jalur input sebelum efek saturasi. Frekuensi dipilih
+  Off/50/60 Hz dari Pengaturan; nilai disimpan di prefs `hum_filter_hz`.
+  Koefisien notch diperbarui HANYA di callback audio (flag `humPending_`) —
+  jangan panggil `humFilter_.setHumFrequency` dari thread UI.
+- Pengaturan satu efek dibuka sebagai POPUP (`EffectSettingsDialog`), bukan
+  halaman terpisah. Jangan menghidupkan kembali rute `EFFECT_DETAIL_ROUTE`.
+- Semua panel UI memakai latar semi-transparan (`PanelCard`, `PedalBox`,
+  dialog) agar gambar latar brand `bg_altomedia` tetap terlihat; pertahankan
+  pola ini saat menambah panel baru.
+- Panel (kartu/tab/pedal/dialog) sengaja memakai alpha 0.45–0.92 agar latar
+  brand terlihat. Scrim `AppBackground` tipis di tengah, lebih pekat di tepi.

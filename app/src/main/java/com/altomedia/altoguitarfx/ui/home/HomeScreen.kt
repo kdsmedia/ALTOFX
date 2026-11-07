@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +48,7 @@ import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.PedalBox
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
+import com.altomedia.altoguitarfx.ui.effects.EffectSettingsDialog
 import com.altomedia.altoguitarfx.ui.effects.applyQuickPreset
 import com.altomedia.altoguitarfx.ui.theme.Accent
 import com.altomedia.altoguitarfx.ui.theme.Danger
@@ -112,7 +114,28 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
 
     ScreenScaffold(
         title = "ALTO GUITAR FX",
-        subtitle = "Pedalboard • Professional Multi Effects"
+        subtitle = "Pedalboard • Professional Multi Effects",
+        headerAction = {
+            // Satu tombol Start/Stop di pojok kanan atas, selalu terlihat
+            // (header tidak ikut ter-scroll).
+            Button(
+                onClick = {
+                    if (status.running) {
+                        status = AudioController.stop()
+                    } else {
+                        startWithPermission()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (status.running) Danger else Accent
+                )
+            ) {
+                Text(
+                    text = if (status.running) "Stop" else "Start",
+                    color = Color.Black
+                )
+            }
+        }
     ) {
         PanelCard(title = "Status Audio") {
             Text(
@@ -172,26 +195,6 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 6.dp)
                     )
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { startWithPermission() },
-                    enabled = !status.running
-                ) {
-                    Text("Start", color = MaterialTheme.colorScheme.onPrimary)
-                }
-                OutlinedButton(
-                    onClick = { status = AudioController.stop() },
-                    enabled = status.running
-                ) {
-                    Text("Stop", color = Danger)
                 }
             }
         }
@@ -509,14 +512,15 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
 
     var pedals by remember { mutableStateOf(readPedals()) }
     var presetIndex by remember { mutableStateOf(emptyMap<EffectType, Int>()) }
+    var settingsFor by remember { mutableStateOf<EffectType?>(null) }
 
     PanelCard(
         title = "Pedalboard",
         modifier = Modifier.padding(top = 12.dp)
     ) {
         Text(
-            text = "Aktifkan/nonaktifkan efek atau pilih preset cepat. Atur " +
-                "parameter di layar Effects.",
+            text = "Aktifkan/nonaktifkan efek atau pilih preset cepat. Ketuk kotak " +
+                "pedal untuk membuka popup pengaturan efek.",
             color = TextSecondary,
             fontSize = 12.sp
         )
@@ -550,7 +554,7 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
                                     pedals = readPedals()
                                 }
                             },
-                            onOpen = { onNavigate(Destination.EFFECTS) },
+                            onOpen = { settingsFor = type },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -565,6 +569,10 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
             modifier = Modifier.padding(top = 10.dp)
         ) {
             Text("Buka Pedalboard")
+        }
+
+        settingsFor?.let { type ->
+            EffectSettingsDialog(effectId = type.id, onDismiss = { settingsFor = null })
         }
     }
 }

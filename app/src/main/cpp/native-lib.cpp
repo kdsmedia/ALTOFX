@@ -457,3 +457,18 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeGlobalBypass(JNIEnv * /
                                                                      jobject /*thiz*/) {
     return engine().effects().globalBypass() ? JNI_TRUE : JNI_FALSE;
 }
+
+// ---- Peredam dengung/grounding (notch 50/60 Hz) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetHumFilterHz(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jfloat hz) {
+    engine().setHumFilterHz(hz);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeHumFilterEnabled(JNIEnv * /*env*/,
+                                                                         jobject /*thiz*/) {
+    return engine().humFilterEnabled() ? JNI_TRUE : JNI_FALSE;
+}

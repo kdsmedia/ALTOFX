@@ -55,7 +55,7 @@ fun PedalBox(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(PanelBgAlt)
+            .background(PanelBgAlt.copy(alpha = 0.55f))
             .border(1.dp, borderColor, RoundedCornerShape(16.dp))
             .clickable(enabled = onOpen != null) { onOpen?.invoke() }
             .padding(horizontal = 12.dp, vertical = 12.dp),

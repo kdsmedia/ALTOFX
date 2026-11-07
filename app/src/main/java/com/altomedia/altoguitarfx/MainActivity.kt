@@ -137,7 +137,7 @@ private fun AltoGuitarFxApp() {
     Scaffold(
         containerColor = Color.Transparent,
         bottomBar = {
-            NavigationBar(containerColor = PanelBg.copy(alpha = 0.85f)) {
+            NavigationBar(containerColor = PanelBg.copy(alpha = 0.55f)) {
                 Destination.entries.forEach { destination ->
                     NavigationBarItem(
                         selected = destination == current,

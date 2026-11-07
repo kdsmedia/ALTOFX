@@ -36,6 +36,13 @@ object AudioController {
     const val DEFAULT_INPUT_GAIN_DB = 0f
 
     /**
+     * Frekuensi jala-jala bawaan untuk peredam dengung/grounding. 50 Hz dipakai
+     * di Indonesia dan sebagian besar dunia; pengguna dapat mengubahnya ke 60 Hz
+     * atau mematikannya di Pengaturan.
+     */
+    const val DEFAULT_HUM_HZ = 50f
+
+    /**
      * Versi skema pengaturan. Dipakai untuk menerapkan nilai bawaan baru pada
      * instalasi lama (mis. menaikkan level output) tanpa menyentuh pilihan
      * perangkat pengguna.
@@ -86,6 +93,7 @@ object AudioController {
         )
         NativeBridge.setMuted(store.getBoolean(KEY_MUTED, false))
         NativeBridge.setLimiterCeilingDb(store.getFloat(KEY_LIMITER_DB, 0f))
+        NativeBridge.setHumFilterHz(store.getFloat(KEY_HUM_HZ, DEFAULT_HUM_HZ))
         NativeBridge.setGlobalBypass(store.getBoolean(KEY_GLOBAL_BYPASS, false))
         applyAmpDefault(store)
     }
@@ -342,6 +350,18 @@ object AudioController {
 
     fun limiterCeilingDb(): Float = NativeBridge.limiterCeilingDb()
 
+    /**
+     * Frekuensi jala-jala untuk peredam dengung (50 Hz untuk Indonesia/Asia,
+     * 60 Hz untuk sebagian Amerika). 0 mematikan peredam.
+     */
+    fun setHumFilterHz(hz: Float) {
+        prefs?.edit()?.putFloat(KEY_HUM_HZ, hz)?.apply()
+        NativeBridge.setHumFilterHz(hz)
+    }
+
+    fun humFilterHz(): Float =
+        prefs?.getFloat(KEY_HUM_HZ, DEFAULT_HUM_HZ) ?: DEFAULT_HUM_HZ
+
     fun levels(): Levels = Levels(
         inputClipping = NativeBridge.inputClipping(),
         outputClipping = NativeBridge.outputClipping(),
@@ -416,6 +436,7 @@ object AudioController {
     private const val KEY_OUTPUT_GAIN_DB = "output_gain_db"
     private const val KEY_MUTED = "muted"
     private const val KEY_LIMITER_DB = "limiter_db"
+    private const val KEY_HUM_HZ = "hum_filter_hz"
     private const val KEY_GLOBAL_BYPASS = "global_bypass"
     private const val KEY_SETTINGS_VERSION = "settings_version"
     private const val KEY_AMP_DEFAULT_DONE = "amp_default_done"

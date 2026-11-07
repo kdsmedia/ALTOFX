@@ -34,17 +34,18 @@ fun AppBackground(
             alignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         )
-        // Scrim: mengurangi kontras gambar agar UI tetap jelas terbaca.
+        // Scrim: mengurangi kontras gambar agar UI tetap terbaca, namun cukup
+        // tipis agar gambar latar brand terlihat jelas (permintaan pengguna).
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colorStops = arrayOf(
-                            0.0f to Color(0xD90B0E11.toInt()),
-                            0.30f to Color(0x730B0E11.toInt()),
-                            0.75f to Color(0x730B0E11.toInt()),
-                            1.0f to Color(0xD90B0E11.toInt())
+                            0.0f to Color(0x990B0E11.toInt()),
+                            0.30f to Color(0x330B0E11.toInt()),
+                            0.75f to Color(0x330B0E11.toInt()),
+                            1.0f to Color(0x990B0E11.toInt())
                         )
                     )
                 )

@@ -194,6 +194,10 @@ oboe::Result AudioEngine::openStreams() {
     // Siapkan tahap gain trim input dan level output master (BAB 15).
     inputGain_.prepare(outputStream_->getSampleRate());
     outputGain_.prepare(outputStream_->getSampleRate());
+    // Peredam dengung/grounding pada jalur input (notch 50/60 Hz + harmonisa).
+    humFilter_.setSampleRate(outputStream_->getSampleRate());
+    humFilter_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
+    humFilter_.setHumFrequency(humHz_.load());
     duckGain_.prepare(outputStream_->getSampleRate(), 30.0f);
     duckGain_.setTargetDb(ducked_.load() ? kDuckDb : 0.0f);
     // Siapkan pemantau performa callback (BAB 16).
@@ -281,6 +285,17 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
         }
     }
     inputGain_.process(output, frames, outChannels);
+
+    // Peredam dengung/grounding (notch 50/60 Hz + harmonisa + high-pass).
+    // Diletakkan sebelum efek saturasi agar dengung tidak ikut diperkuat.
+    if (humEnabled_.load()) {
+        // Perbarui koefisien notch di thread audio bila frekuensi berubah dari
+        // UI (objek DSP tidak boleh disentuh dari dua thread).
+        if (humPending_.exchange(false)) {
+            humFilter_.setHumFrequency(humHz_.load());
+        }
+        humFilter_.process(output, frames, outChannels);
+    }
 
     // Deteksi clipping input setelah trim gain.
     float inputPeak = 0.0f;

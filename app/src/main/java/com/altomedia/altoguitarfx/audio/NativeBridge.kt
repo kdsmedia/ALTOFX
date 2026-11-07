@@ -265,6 +265,22 @@ object NativeBridge {
 
     fun isGlobalBypass(): Boolean = isLoaded && nativeGlobalBypass()
 
+    // ---- Peredam dengung/grounding ----
+
+    /**
+     * Mengaktifkan/menyetel peredam dengung pada jalur input. [hz] adalah
+     * frekuensi jala-jala (50 atau 60); nilai 0 mematikannya.
+     */
+    fun setHumFilterHz(hz: Float) {
+        if (isLoaded) nativeSetHumFilterHz(hz)
+    }
+
+    fun isHumFilterEnabled(): Boolean = isLoaded && nativeHumFilterEnabled()
+
+    private external fun nativeSetHumFilterHz(hz: Float)
+
+    private external fun nativeHumFilterEnabled(): Boolean
+
     private external fun nativeVersion(): String
 
     private external fun nativeEcho(input: String): String

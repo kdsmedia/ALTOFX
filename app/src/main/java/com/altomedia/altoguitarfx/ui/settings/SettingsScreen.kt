@@ -458,6 +458,7 @@ private fun LevelPanel() {
     var inputGain by remember { mutableStateOf(AudioController.inputGainDb()) }
     var outputGain by remember { mutableStateOf(AudioController.outputGainDb()) }
     var ceiling by remember { mutableStateOf(AudioController.limiterCeilingDb()) }
+    var humHz by remember { mutableStateOf(AudioController.humFilterHz()) }
     var levels by remember { mutableStateOf(AudioController.levels()) }
 
     LaunchedEffect(Unit) {
@@ -505,6 +506,55 @@ private fun LevelPanel() {
                 AudioController.setLimiterCeilingDb(it)
             }
         )
+
+        // Peredam dengung/grounding (notch 50/60 Hz + harmonisa).
+        Text(
+            text = "Peredam Dengung (Grounding)",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+        Text(
+            text = "Menekan dengung 50/60 Hz dan harmonisanya. Pilih sesuai " +
+                "frekuensi listrik di tempat Anda (Indonesia 50 Hz).",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            HumOption(
+                label = "Off",
+                selected = humHz <= 0f,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    humHz = 0f
+                    AudioController.setHumFilterHz(0f)
+                }
+            )
+            HumOption(
+                label = "50 Hz",
+                selected = humHz > 0f && humHz < 55f,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    humHz = 50f
+                    AudioController.setHumFilterHz(50f)
+                }
+            )
+            HumOption(
+                label = "60 Hz",
+                selected = humHz >= 55f,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    humHz = 60f
+                    AudioController.setHumFilterHz(60f)
+                }
+            )
+        }
 
         Text(
             text = "Bila keluaran terasa terlalu kecil, naikkan Level Output " +
@@ -562,5 +612,26 @@ private fun GainSlider(
             onValueChange = onChange,
             valueRange = range
         )
+    }
+}
+
+/** Tombol pilihan frekuensi dengung (Off / 50 Hz / 60 Hz). */
+@Composable
+private fun HumOption(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = if (selected) {
+            androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Accent)
+        } else {
+            androidx.compose.material3.ButtonDefaults.outlinedButtonColors()
+        }
+    ) {
+        Text(label, fontSize = 13.sp)
     }
 }

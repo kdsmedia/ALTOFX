@@ -74,7 +74,7 @@ fun PresetsScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(PanelBgAlt)
+                .background(PanelBgAlt.copy(alpha = 0.5f))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -84,7 +84,7 @@ fun PresetsScreen() {
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(9.dp))
-                        .background(if (selected) Accent else PanelBgAlt)
+                        .background(if (selected) Accent else PanelBgAlt.copy(alpha = 0.45f))
                         .clickable { tab = entry }
                         .padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center

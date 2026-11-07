@@ -26,12 +26,12 @@ import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 
 /**
  * Effects (BAB 7-12). Menampilkan pedalboard: setiap efek sebagai kotak pedal
- * dengan tombol ON/OFF bergaya sakelar kaki (bukan tombol geser), tombol
- * Preset cepat, dan tombol Atur untuk membuka layar pengaturan efek tersebut
- * (pengaturan per efek, bukan satu halaman gabungan).
+ * dengan tombol ON/OFF bergaya sakelar kaki, tombol Preset cepat, dan tombol
+ * Atur. Menekan "Atur" (atau kotak pedal) membuka POPUP pengaturan efek
+ * tersebut — tidak ada halaman terpisah.
  */
 @Composable
-fun EffectsScreen(onOpenEffect: (EffectType) -> Unit) {
+fun EffectsScreen() {
     ScreenScaffold(
         title = "Effects",
         subtitle = "Pedalboard — ketuk pedal untuk mengatur"
@@ -41,11 +41,12 @@ fun EffectsScreen(onOpenEffect: (EffectType) -> Unit) {
         var order by remember { mutableStateOf(readOrder()) }
         var enabledMap by remember { mutableStateOf(readEnabled(order)) }
         var presetIndex by remember { mutableStateOf(emptyMap<EffectType, Int>()) }
+        var settingsFor by remember { mutableStateOf<EffectType?>(null) }
 
         PanelCard(title = "Urutan Efek") {
             Text(
                 text = "Urutan pemrosesan sesuai rantai nyata. Tombol ▲/▼ pada " +
-                    "layar pengaturan tiap efek memindahkan posisinya.",
+                    "popup pengaturan efek memindahkan posisinya.",
                 color = TextSecondary,
                 fontSize = 12.sp
             )
@@ -93,7 +94,7 @@ fun EffectsScreen(onOpenEffect: (EffectType) -> Unit) {
                                     }
                                 }
                             },
-                            onOpen = { onOpenEffect(type) },
+                            onOpen = { settingsFor = type },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -111,6 +112,10 @@ fun EffectsScreen(onOpenEffect: (EffectType) -> Unit) {
             fontSize = 11.sp,
             modifier = Modifier.padding(top = 12.dp)
         )
+
+        settingsFor?.let { type ->
+            EffectSettingsDialog(effectId = type.id, onDismiss = { settingsFor = null })
+        }
     }
 }
 

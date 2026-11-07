@@ -23,14 +23,14 @@ enum class EffectType(
         id = 0,
         label = "Noise Gate",
         params = listOf(
-            ParamSpec("Threshold", -80f, 0f, -45f, "dB"),
-            ParamSpec("Release", 5f, 500f, 120f, "ms"),
+            ParamSpec("Threshold", -80f, 0f, -55f, "dB"),
+            ParamSpec("Release", 5f, 500f, 150f, "ms"),
             ParamSpec("Attack", 1f, 50f, 5f, "ms")
         ),
         quickPresets = listOf(
-            QuickPreset("Halus", mapOf(0 to -55f, 1 to 250f, 2 to 8f)),
-            QuickPreset("Ketat", mapOf(0 to -38f, 1 to 50f, 2 to 1f)),
-            QuickPreset("Sedang", mapOf(0 to -45f, 1 to 120f, 2 to 5f))
+            QuickPreset("Halus", mapOf(0 to -60f, 1 to 250f, 2 to 8f)),
+            QuickPreset("Ketat", mapOf(0 to -42f, 1 to 60f, 2 to 1f)),
+            QuickPreset("Sedang", mapOf(0 to -52f, 1 to 140f, 2 to 5f))
         )
     ),
     COMPRESSOR(

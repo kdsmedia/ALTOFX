@@ -11,6 +11,7 @@
 
 #include "Effects.h"
 #include "GainStage.h"
+#include "HumFilter.h"
 #include "PerformanceMonitor.h"
 #include "PitchDetector.h"
 
@@ -122,6 +123,25 @@ public:
     float limiterCeilingDb() const { return limiterCeilingDb_.load(); }
 
     /**
+     * Peredam dengung/grounding pada jalur input (notch 50/60 Hz + harmonisa,
+     * high-pass, DC blocker). [hz] adalah frekuensi jala-jala: 50 untuk 50 Hz,
+     * 60 untuk 60 Hz. Nilai 0 mematikannya (bypass). Berlaku langsung.
+     */
+    void setHumFilterHz(float hz) {
+        if (hz >= 20.0f) {
+            humHz_.store(hz);
+            humEnabled_.store(true);
+        } else {
+            humEnabled_.store(false);
+        }
+        // Koefisien dihitung ulang di callback audio, bukan di sini: objek DSP
+        // tidak boleh disentuh dari dua thread (aturan real-time).
+        humPending_.store(true);
+    }
+
+    bool humFilterEnabled() const { return humEnabled_.load(); }
+
+    /**
      * Pesan kesalahan terakhir (BAB 15), mis. perangkat terputus. Kosong bila
      * tidak ada masalah. Dibaca UI untuk menampilkan status yang informatif.
      */
@@ -210,6 +230,10 @@ private:
     PerformanceMonitor performance_;
     GainStage inputGain_;
     GainStage outputGain_;
+    HumFilter humFilter_;
+    std::atomic<bool> humEnabled_{true};
+    std::atomic<float> humHz_{50.0f};
+    std::atomic<bool> humPending_{true};
     std::atomic<bool> inputClipping_{false};
     std::atomic<bool> outputClipping_{false};
     std::atomic<float> limiterCeilingDb_{0.0f};
