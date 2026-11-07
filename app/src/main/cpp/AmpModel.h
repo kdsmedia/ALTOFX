@@ -5,6 +5,7 @@
 
 #include "Biquad.h"
 #include "Effect.h"
+#include "Oversampling.h"
 #include "Saturation.h"
 
 namespace alto {
@@ -50,7 +51,9 @@ private:
     SmoothedParam master_;
 
     AdaaSaturator saturator_;
-    DcBlocker dcBlocker_;
+    Oversampler2x oversampler_;
+    // Pembuang DC per kanal (mencegah crosstalk antar kanal).
+    DcBlocker dcBlocker_[kMaxChannels];
     // Pemotong DC masukan (high-pass) untuk membuang frekuensi sangat rendah.
     Biquad inputHighPass_[kMaxChannels];
     Biquad bassFilter_[kMaxChannels];

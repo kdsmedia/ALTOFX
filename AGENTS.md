@@ -144,6 +144,33 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       Ditambah: noise gate default diperkuat (-55 dB), impor `EffectSettingsDialog`
       yang hilang diperbaiki. 14 suite DSP + ASAN lolos (FAIL=0), JNI 61/61,
       debug/release/AAB build sukses, APK rilis tertanda tangan ALTOMEDIA.
+- [x] Pasca-rilis lanjutan 2 — kualitas distorsi, kebersihan sinyal, dan efek baru:
+      1) **Anti-aliasing (oversampling 2x)** — `Oversampling.h` (interpolasi
+         zero-stuffing + low-pass, dekimasi) dipakai pada saturasi
+         (`DriveEffect`) dan preamp (`AmpModel`), menekan harmonisa terlipat
+         (aliasing) yang membuat distorsi gain tinggi terdengar "pecah".
+      2) **Koreksi stereo** — `DriveEffect` dan `AmpModel` sebelumnya berbagi
+         keadaan filter antar kanal (crosstalk); kini seluruh keadaan filter
+         per kanal (`toneFilter_[]`, `dcBlocker_[]`, `inputHighPass_[]`,
+         `cabinet_[]`).
+      3) **Efek Auto Wah** (`AutoWah.h/.cpp`, id 13) — wah dikendalikan selubung
+         sinyal memakai `StateVariableFilter` (TPT SVF, stabil saat cutoff
+         dimodulasi per sampel). Band-pass dikompensasi gain (~Q) agar tingkat
+         keluaran konsisten. Preset bawaan **FUNK WAH** ditambahkan.
+      4) **Tombol Noise per efek** — `NoiseCleanup.h` (downward expander ringan)
+         pada jalur tiap efek, dikendalikan dari popup pengaturan efek
+         (`setEffectNoise`). Bawaan mati (opt-in) agar tidak menumpuk dan
+         memotong ekor reverb/delay.
+      5) **Anti-Feedback** (`AntiFeedback.h`) — deteksi nada menonjol & bertahan
+         (bank 24 pita + interpolasi parabola) lalu notch sempit adaptif;
+         notch tidak melepas dirinya sendiri (hitung idle per slot). Bawaan
+         mati; dinyalakan di Pengaturan (prefs `anti_feedback`).
+      6) **Pembukaan input** — ditambah percobaan `Unprocessed` pada
+         Exclusive/LowLatency setelah `Generic`, memperluas peluang stream
+         input terbuka pada perangkat yang menolak preset tertentu.
+      Suite `autowah_test` + `antifeedback_test` ditambahkan. 16 suite DSP +
+      ASAN lolos (FAIL=0), JNI 65/65, debug/release/AAB build sukses, APK rilis
+      tertanda tangan ALTOMEDIA.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.

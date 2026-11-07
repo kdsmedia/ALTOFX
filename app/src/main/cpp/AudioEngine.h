@@ -12,6 +12,7 @@
 #include "Effects.h"
 #include "GainStage.h"
 #include "HumFilter.h"
+#include "AntiFeedback.h"
 #include "PerformanceMonitor.h"
 #include "PitchDetector.h"
 
@@ -142,6 +143,15 @@ public:
     bool humFilterEnabled() const { return humEnabled_.load(); }
 
     /**
+     * Anti-feedback (penekan howling) pada jalur input. Mendeteksi nada yang
+     * menonjol dan bertahan (ciri feedback) lalu memasang notch sempit pada
+     * frekuensi itu, sehingga suara tetap jernih tanpa howling. Default aktif.
+     */
+    void setAntiFeedback(bool on) { antiFeedbackEnabled_.store(on); }
+
+    bool antiFeedback() const { return antiFeedbackEnabled_.load(); }
+
+    /**
      * Pesan kesalahan terakhir (BAB 15), mis. perangkat terputus. Kosong bila
      * tidak ada masalah. Dibaca UI untuk menampilkan status yang informatif.
      */
@@ -234,6 +244,12 @@ private:
     std::atomic<bool> humEnabled_{true};
     std::atomic<float> humHz_{50.0f};
     std::atomic<bool> humPending_{true};
+    AntiFeedback antiFeedback_;
+    // Bawaan mati: penekan feedback bersifat pilihan (dinyalakan pengguna di
+    // Pengaturan saat memakai speaker/amp dan terjadi howling). Mendeteksi
+    // nada bertahan secara keliru bisa sedikit melemahkan nada panjang, jadi
+    // lebih aman membiarkannya nonaktif sampai diminta.
+    std::atomic<bool> antiFeedbackEnabled_{false};
     std::atomic<bool> inputClipping_{false};
     std::atomic<bool> outputClipping_{false};
     std::atomic<float> limiterCeilingDb_{0.0f};

@@ -33,6 +33,7 @@ static const CatalogEntry kCatalog[] = {
     {EffectType::Tremolo, "Tremolo", 2},
     {EffectType::Delay, "Delay", 3},
     {EffectType::Reverb, "Reverb", 4},
+    {EffectType::AutoWah, "Auto Wah", 4},
 };
 
 // Petikan gitar: kuat lalu meluruh, cukup untuk memicu efek bergantung level.
@@ -97,6 +98,10 @@ static void configureStrong(EffectChain& chain, EffectType type) {
         case EffectType::Reverb:
             chain.setParam(type, 0, 0.9f); chain.setParam(type, 1, 0.9f);
             chain.setParam(type, 2, 0.1f); chain.setParam(type, 3, 0.8f);
+            break;
+        case EffectType::AutoWah:
+            chain.setParam(type, 0, 0.8f); chain.setParam(type, 1, 0.9f);
+            chain.setParam(type, 2, 8.0f); chain.setParam(type, 3, 1.0f);
             break;
         default: break;
     }

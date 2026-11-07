@@ -17,6 +17,16 @@ object EffectController {
 
     fun isEnabled(type: EffectType): Boolean = NativeBridge.isEffectEnabled(type.id)
 
+    /**
+     * Tombol "Noise" per efek: mengaktifkan pembersih bising pada jalur efek
+     * tersebut. Bermanfaat menekan hiss/derau sebelum efek saturasi.
+     */
+    fun setNoise(type: EffectType, on: Boolean) {
+        NativeBridge.setEffectNoise(type.id, on)
+    }
+
+    fun isNoise(type: EffectType): Boolean = NativeBridge.isEffectNoise(type.id)
+
     fun setParam(type: EffectType, index: Int, value: Float) {
         NativeBridge.setEffectParam(type.id, index, value)
     }

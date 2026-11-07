@@ -54,6 +54,7 @@ fun EffectSettingsDialog(effectId: Int, onDismiss: () -> Unit) {
     }
     var order by remember(type) { mutableStateOf(readOrder()) }
     val position = order.indexOf(type).coerceAtLeast(0)
+    var noise by remember(type) { mutableStateOf(EffectController.isNoise(type)) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -118,6 +119,41 @@ fun EffectSettingsDialog(effectId: Int, onDismiss: () -> Unit) {
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Reset")
+                    }
+                }
+
+                // Tombol NOISE per efek: pembersih bising pada jalur efek ini.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Noise",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Peredam hiss/derau sebelum efek ini",
+                            color = TextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            noise = !noise
+                            EffectController.setNoise(type, noise)
+                        },
+                        colors = if (noise) {
+                            ButtonDefaults.outlinedButtonColors(contentColor = Accent)
+                        } else {
+                            ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
+                        }
+                    ) {
+                        Text(if (noise) "NOISE: ON" else "NOISE: OFF")
                     }
                 }
 

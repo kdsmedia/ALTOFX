@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Effect.h"
+#include "NoiseCleanup.h"
 
 namespace alto {
 
@@ -32,7 +33,8 @@ enum class EffectType : int {
     Tremolo = 10,
     Delay = 11,
     Reverb = 12,
-    Count = 13
+    AutoWah = 13,
+    Count = 14
 };
 
 /**
@@ -61,6 +63,13 @@ public:
 
     void setEnabled(EffectType type, bool enabled);
     bool isEnabled(EffectType type) const;
+
+    /**
+     * Tombol "Noise" per efek: mengaktifkan/mematikan pembersih bising pada
+     * jalur efek tersebut. Berlaku untuk semua efek (juga yang belum aktif).
+     */
+    void setNoiseReduction(EffectType type, bool on);
+    bool noiseReduction(EffectType type) const;
 
     void setParam(EffectType type, int index, float value);
     float param(EffectType type, int index) const;
@@ -100,6 +109,8 @@ private:
     static uint64_t encode(const std::array<EffectType, kEffectCount>& order);
 
     std::array<std::unique_ptr<Effect>, static_cast<size_t>(EffectType::Count)> effects_;
+    // Pembersih bising per slot efek (tombol "Noise" pada popup tiap efek).
+    std::array<NoiseCleanup, static_cast<size_t>(EffectType::Count)> noiseCleanup_;
     std::atomic<uint64_t> orderCode_{0};
     std::atomic<bool> globalBypass_{false};
 };

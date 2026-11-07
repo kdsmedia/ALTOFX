@@ -1,6 +1,20 @@
 #include "DriveEffect.h"
 
+#include <cmath>
+
 namespace alto {
+
+namespace {
+// Rentang kontrol tone: dari gelap ke terang.
+constexpr float kToneLowHz = 600.0f;
+constexpr float kToneHighHz = 9000.0f;
+constexpr float kToneQ = 0.707f;
+
+inline float toneToCutoff(float tone) {
+    float t = tone < 0.0f ? 0.0f : (tone > 1.0f ? 1.0f : tone);
+    return kToneLowHz * std::pow(kToneHighHz / kToneLowHz, t);
+}
+}  // namespace
 
 DriveEffect::DriveEffect(const char* name, Shape shape, float driveScale)
         : Effect(3, name), shape_(shape), driveScale_(driveScale) {
@@ -15,15 +29,28 @@ void DriveEffect::prepare(double sampleRate, int32_t channels) {
     tone_.configure(param(1), 20.0f, sampleRate);
     level_.configure(param(2), 20.0f, sampleRate);
     saturator_.reset();
-    toneFilter_.reset();
-    dcBlocker_.reset();
-    toneFilter_.setCutoff(param(1));
+    oversampler_.prepare(sampleRate, channels);
+    updateToneFilter(param(1));
+    for (int32_t c = 0; c < kMaxChannels; ++c) {
+        toneFilter_[c].reset();
+        dcBlocker_[c].reset();
+    }
 }
 
 void DriveEffect::reset() {
     saturator_.reset();
-    toneFilter_.reset();
-    dcBlocker_.reset();
+    oversampler_.reset();
+    for (int32_t c = 0; c < kMaxChannels; ++c) {
+        toneFilter_[c].reset();
+        dcBlocker_[c].reset();
+    }
+}
+
+void DriveEffect::updateToneFilter(float tone) {
+    const float cutoff = toneToCutoff(tone);
+    for (int32_t c = 0; c < kMaxChannels; ++c) {
+        toneFilter_[c].setLowPass(static_cast<float>(sampleRate_), cutoff, kToneQ);
+    }
 }
 
 void DriveEffect::onParamChanged(int index, float value) {
@@ -45,29 +72,35 @@ void DriveEffect::process(float* buffer, int32_t frames, int32_t channels) {
         const float tone = tone_.next();
         const float level = level_.next();
         const float gain = 1.0f + drive * driveScale_;
-        toneFilter_.setCutoff(tone);
+        if ((frame & 31) == 0) {
+            updateToneFilter(tone);
+        }
 
         for (int32_t channel = 0; channel < channels; ++channel) {
-            float sample = buffer[frame * channels + channel];
-            sample *= gain;
+            float sample = buffer[frame * channels + channel] * gain;
 
+            // Waveshaping pada laju 2x untuk menekan aliasing (anti "pecah").
+            float a = 0.0f;
+            float b = 0.0f;
+            oversampler_.up(sample, channel, a, b);
             switch (shape_) {
                 case Shape::SoftTanh:
-                    sample = saturator_.processTanh(sample, channel);
+                    a = saturator_.processTanh(a, channel);
+                    b = saturator_.processTanh(b, channel);
                     break;
                 case Shape::HardClip:
-                    sample = saturator_.processHardClip(sample, 1.0f, channel);
+                    a = saturator_.processHardClip(a, 1.0f, channel);
+                    b = saturator_.processHardClip(b, 1.0f, channel);
                     break;
-                case Shape::Fuzz: {
-                    // Klip asimetris (ambang positif/negatif berbeda) memberi
-                    // harmonisa genap khas fuzz yang bertahan setelah DC hilang.
-                    sample = saturator_.processAsymmetricClip(sample, 0.7f, 1.0f, channel);
+                case Shape::Fuzz:
+                    a = saturator_.processAsymmetricClip(a, 0.7f, 1.0f, channel);
+                    b = saturator_.processAsymmetricClip(b, 0.7f, 1.0f, channel);
                     break;
-                }
             }
+            sample = oversampler_.down(a, b, channel);
 
-            sample = toneFilter_.process(sample);
-            sample = dcBlocker_.process(sample);
+            sample = toneFilter_[channel].process(sample);
+            sample = dcBlocker_[channel].process(sample);
             buffer[frame * channels + channel] = sample * level;
         }
     }

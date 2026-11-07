@@ -36,7 +36,8 @@ object BuiltInPresets {
         hardRock(),
         metal(),
         leadSolo(),
-        ambient()
+        ambient(),
+        funkWah()
     )
 
     /** Gate → Amp bersih → EQ → Reverb. Bersih dan jernih. */
@@ -124,6 +125,14 @@ object BuiltInPresets {
         EffectType.CHORUS to mapOf(0 to 0.6f, 1 to 0.6f, 2 to 0.5f),
         EffectType.DELAY to mapOf(0 to 500f, 1 to 0.5f, 2 to 0.35f),
         EffectType.REVERB to mapOf(0 to 0.85f, 1 to 0.8f, 2 to 0.35f, 3 to 0.45f)
+    )
+
+    /** Auto Wah → Amp bersih → Delay. Funk dengan wah yang mengikuti petikan. */
+    private fun funkWah() = build(
+        "FUNK WAH",
+        EffectType.AUTO_WAH to mapOf(0 to 0.85f, 1 to 0.9f, 2 to 5.5f, 3 to 1.0f),
+        EffectType.AMP to amp(0f, 3f, 4f, 0f, 2f, 4f, 2f),
+        EffectType.DELAY to mapOf(0 to 220f, 1 to 0.35f, 2 to 0.25f)
     )
 
     /**

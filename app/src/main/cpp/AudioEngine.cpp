@@ -109,13 +109,18 @@ oboe::Result AudioEngine::openInputStream(oboe::AudioStreamBuilder& builder) {
     };
     // Urutan: jalur terbaik lebih dulu. Bila input headset (iRig di jack
     // headset), coba VoiceRecognition lebih awal karena pada banyak perangkat
-    // preset itulah yang membuka mikrofon headset (TRRS) dengan benar.
+    // preset itulah yang membuka mikrofon headset (TRRS) dengan benar. Untuk
+    // input lain, Unprocessed memberi sinyal gitar apa adanya (tanpa AGC).
+    // Bila semua gagal, turun ke Shared/Generic lalu Unprocessed sebagai
+    // upaya terakhir.
     const Attempt attempts[] = {
             {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
              headset ? oboe::InputPreset::VoiceRecognition : oboe::InputPreset::Unprocessed,
              kInputChannels},
             {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
              oboe::InputPreset::Generic, kInputChannels},
+            {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
+             oboe::InputPreset::Unprocessed, kInputChannels},
             {oboe::SharingMode::Shared, oboe::PerformanceMode::LowLatency,
              oboe::InputPreset::Generic, kInputChannels},
             {oboe::SharingMode::Shared, oboe::PerformanceMode::None,
@@ -198,6 +203,8 @@ oboe::Result AudioEngine::openStreams() {
     humFilter_.setSampleRate(outputStream_->getSampleRate());
     humFilter_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
     humFilter_.setHumFrequency(humHz_.load());
+    // Penekan feedback otomatis (anti-howling) pada jalur input.
+    antiFeedback_.prepare(outputStream_->getSampleRate(), outputStream_->getChannelCount());
     duckGain_.prepare(outputStream_->getSampleRate(), 30.0f);
     duckGain_.setTargetDb(ducked_.load() ? kDuckDb : 0.0f);
     // Siapkan pemantau performa callback (BAB 16).
@@ -295,6 +302,12 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
             humFilter_.setHumFrequency(humHz_.load());
         }
         humFilter_.process(output, frames, outChannels);
+    }
+
+    // Penekan feedback otomatis: cari nada yang menonjol & bertahan (howling)
+    // lalu pasang notch sempit agar suara tetap jernih.
+    if (antiFeedbackEnabled_.load()) {
+        antiFeedback_.process(output, frames, outChannels);
     }
 
     // Deteksi clipping input setelah trim gain.

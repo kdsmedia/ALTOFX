@@ -459,6 +459,7 @@ private fun LevelPanel() {
     var outputGain by remember { mutableStateOf(AudioController.outputGainDb()) }
     var ceiling by remember { mutableStateOf(AudioController.limiterCeilingDb()) }
     var humHz by remember { mutableStateOf(AudioController.humFilterHz()) }
+    var antiFeedback by remember { mutableStateOf(AudioController.isAntiFeedback()) }
     var levels by remember { mutableStateOf(AudioController.levels()) }
 
     LaunchedEffect(Unit) {
@@ -552,6 +553,47 @@ private fun LevelPanel() {
                 onClick = {
                     humHz = 60f
                     AudioController.setHumFilterHz(60f)
+                }
+            )
+        }
+
+        // Penekan feedback otomatis (anti-howling).
+        Text(
+            text = "Anti-Feedback",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+        Text(
+            text = "Mendeteksi nada feedback yang menguat lalu memasang notch " +
+                "sempit pada frekuensi itu, sehingga suara tetap jernih tanpa " +
+                "howling. Biarkan aktif bila memakai speaker/amp.",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            HumOption(
+                label = "Off",
+                selected = !antiFeedback,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    antiFeedback = false
+                    AudioController.setAntiFeedback(false)
+                }
+            )
+            HumOption(
+                label = "On",
+                selected = antiFeedback,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    antiFeedback = true
+                    AudioController.setAntiFeedback(true)
                 }
             )
         }

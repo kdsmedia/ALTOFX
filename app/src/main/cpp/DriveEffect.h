@@ -1,7 +1,9 @@
 #ifndef ALTOGUITARFX_DRIVEEFFECT_H
 #define ALTOGUITARFX_DRIVEEFFECT_H
 
+#include "Biquad.h"
 #include "Effect.h"
+#include "Oversampling.h"
 #include "Saturation.h"
 
 namespace alto {
@@ -9,9 +11,12 @@ namespace alto {
 /**
  * Basis efek saturasi (BAB 8): Overdrive, Distortion, Fuzz.
  *
- * Semua memakai parameter yang sama (drive/gain, tone, level) dan struktur
- * yang sama: penguatan input -> waveshaping non-linear (ADAA) -> kontrol tone
- * -> level output, dengan DC blocker untuk mencegah offset.
+ * Struktur: penguatan input -> waveshaping non-linear (ADAA) -> kontrol tone
+ * -> level output, dengan DC blocker per kanal.
+ *
+ * Untuk menghindari suara "pecah" (aliasing) pada gain tinggi, tahap klip
+ * dijalankan pada laju 2x (oversampling) lalu disaring sebelum turun kembali.
+ * Setiap filter bersifat per kanal agar tidak ada crosstalk antar kanal.
  */
 class DriveEffect : public Effect {
 public:
@@ -20,6 +25,8 @@ public:
         HardClip,   // Distortion: klip tegas
         Fuzz        // Fuzz: klip asimetris, gain tinggi
     };
+
+    static constexpr int kMaxChannels = 2;
 
     DriveEffect(const char* name, Shape shape, float driveScale);
 
@@ -31,14 +38,17 @@ protected:
     void onParamChanged(int index, float value) override;
 
 private:
+    void updateToneFilter(float tone);
+
     Shape shape_;
     float driveScale_;
     SmoothedParam drive_;
     SmoothedParam tone_;
     SmoothedParam level_;
     AdaaSaturator saturator_;
-    OnePoleLowPass toneFilter_;
-    DcBlocker dcBlocker_;
+    Oversampler2x oversampler_;
+    Biquad toneFilter_[kMaxChannels];
+    DcBlocker dcBlocker_[kMaxChannels];
 };
 
 }  // namespace alto

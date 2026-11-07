@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "AmpModel.h"
+#include "AutoWah.h"
 #include "Chorus.h"
 #include "Compressor.h"
 #include "Delay.h"
@@ -41,6 +42,8 @@ EffectChain::EffectChain() {
     // BAB 11: efek ruang/waktu.
     effects_[static_cast<size_t>(EffectType::Delay)] = std::make_unique<Delay>();
     effects_[static_cast<size_t>(EffectType::Reverb)] = std::make_unique<Reverb>();
+    // Efek wah yang dikendalikan dinamika permainan (envelope wah).
+    effects_[static_cast<size_t>(EffectType::AutoWah)] = std::make_unique<AutoWah>();
 
     resetOrder();
 }
@@ -100,6 +103,9 @@ void EffectChain::reset() {
             effect->reset();
         }
     }
+    for (auto& cleanup : noiseCleanup_) {
+        cleanup.reset();
+    }
 }
 
 void EffectChain::resetOrder() {
@@ -116,6 +122,9 @@ void EffectChain::prepare(double sampleRate, int32_t channels) {
             effect->prepare(sampleRate, channels);
         }
     }
+    for (auto& cleanup : noiseCleanup_) {
+        cleanup.prepare(sampleRate, channels);
+    }
 }
 
 void EffectChain::process(float* buffer, int32_t frames, int32_t channels) {
@@ -127,6 +136,11 @@ void EffectChain::process(float* buffer, int32_t frames, int32_t channels) {
     for (const auto type : current) {
         Effect* e = effect(type);
         if (e != nullptr && e->isEnabled()) {
+            // Tombol "Noise" per efek: bersihkan bising sebelum efek memproses
+            // (penting sebelum saturasi yang menguatkan derau).
+            if (e->noiseReduction()) {
+                noiseCleanup_[static_cast<size_t>(type)].process(buffer, frames, channels);
+            }
             e->process(buffer, frames, channels);
         }
     }
@@ -149,6 +163,19 @@ void EffectChain::setEnabled(EffectType type, bool enabled) {
 bool EffectChain::isEnabled(EffectType type) const {
     if (Effect* e = effect(type)) {
         return e->isEnabled();
+    }
+    return false;
+}
+
+void EffectChain::setNoiseReduction(EffectType type, bool on) {
+    if (Effect* e = effect(type)) {
+        e->setNoiseReduction(on);
+    }
+}
+
+bool EffectChain::noiseReduction(EffectType type) const {
+    if (Effect* e = effect(type)) {
+        return e->noiseReduction();
     }
     return false;
 }

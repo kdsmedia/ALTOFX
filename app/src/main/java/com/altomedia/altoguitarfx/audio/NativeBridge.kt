@@ -277,9 +277,35 @@ object NativeBridge {
 
     fun isHumFilterEnabled(): Boolean = isLoaded && nativeHumFilterEnabled()
 
+    // ---- Anti-feedback (penekan howling) ----
+
+    /** Mengaktifkan/mematikan penekan feedback otomatis pada jalur input. */
+    fun setAntiFeedback(on: Boolean) {
+        if (isLoaded) nativeSetAntiFeedback(on)
+    }
+
+    fun isAntiFeedback(): Boolean = isLoaded && nativeAntiFeedback()
+
+    // ---- Peredam bising per efek (tombol "Noise") ----
+
+    /** Mengaktifkan/mematikan pembersih bising pada jalur satu efek. */
+    fun setEffectNoise(type: Int, on: Boolean) {
+        if (isLoaded) nativeSetEffectNoise(type, on)
+    }
+
+    fun isEffectNoise(type: Int): Boolean = isLoaded && nativeEffectNoise(type)
+
     private external fun nativeSetHumFilterHz(hz: Float)
 
     private external fun nativeHumFilterEnabled(): Boolean
+
+    private external fun nativeSetAntiFeedback(on: Boolean)
+
+    private external fun nativeAntiFeedback(): Boolean
+
+    private external fun nativeSetEffectNoise(type: Int, on: Boolean)
+
+    private external fun nativeEffectNoise(type: Int): Boolean
 
     private external fun nativeVersion(): String
 

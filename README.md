@@ -22,10 +22,20 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 
 ## Fitur
 
-- **13 efek** (blueprint bagian 7): Noise Gate, Compressor, Overdrive,
-  Distortion, Fuzz, **Amp** (model amplifier: preamp + tone stack + kabinet,
-  voicing Clean/Crunch/Lead), Equalizer, Chorus, Flanger, Phaser, Tremolo,
-  Delay, Reverb. Setiap efek punya parameter, bypass, dan reset sendiri.
+- **14 efek** (blueprint bagian 7 + Auto Wah): Noise Gate, Compressor,
+  Overdrive, Distortion, Fuzz, **Amp** (model amplifier: preamp + tone stack +
+  kabinet, voicing Clean/Crunch/Lead), Equalizer, Chorus, Flanger, Phaser,
+  Tremolo, Delay, Reverb, **Auto Wah** (wah yang dikendalikan dinamika
+  permainan). Setiap efek punya parameter, bypass, dan reset sendiri.
+- **Anti-aliasing (oversampling 2x)** pada tahap saturasi (Overdrive,
+  Distortion, Fuzz) dan preamp Amp, sehingga distorsi gain tinggi terdengar
+  halus dan tidak "pecah" akibat harmonisa yang terlipat (aliasing).
+- **Tombol Noise per efek**: pembersih bising ringan (downward expander) pada
+  jalur efek untuk menekan hiss sebelum efek menguatkannya. Dapat
+  dinyalakan/dimatikan di popup pengaturan tiap efek (bawaan mati).
+- **Anti-Feedback** (penekan howling): mendeteksi nada yang menonjol dan
+  bertahan lalu memasang notch sempit otomatis pada frekuensi itu. Dapat
+  dinyalakan di Pengaturan (bawaan mati).
 - **Antarmuka bergaya Tonebridge**: panel amplifier dengan knob putar
   (Gain, Bass, Mid, Treble, Presence, Master) dan pemilih voicing; setiap
   parameter efek juga diatur lewat knob. Model amplifier aktif secara bawaan
@@ -46,9 +56,9 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 - **Noise Gate aktif secara bawaan** untuk menekan bising (hiss) saat perangkat
   dicolok; waktu tahan (hold) internal menjaga nada yang meluruh tidak terpotong.
 - **Urutan efek** dapat diubah dari UI (naik/turun, reset ke bawaan).
-- **Preset**: 9 preset bawaan (CLEAN, BLUES, ACOUSTIC, CRUNCH, ROCK, HARD ROCK,
-  METAL, LEAD SOLO, AMBIENT) + 26 tone siap pakai + simpan, rename, duplikasi,
-  hapus, dan restore default.
+- **Preset**: 10 preset bawaan (CLEAN, BLUES, ACOUSTIC, CRUNCH, ROCK,
+  HARD ROCK, METAL, LEAD SOLO, AMBIENT, FUNK WAH) + 26 tone siap pakai +
+  simpan, rename, duplikasi, hapus, dan restore default.
 - **Tuner** dengan referensi A4 yang dapat diubah (432–445 Hz).
 - **Level meter** input/output, indikator clipping, mute, dan bypass keseluruhan.
 - **Perangkat**: pemilihan input/output (mikrofon internal, headset, USB audio

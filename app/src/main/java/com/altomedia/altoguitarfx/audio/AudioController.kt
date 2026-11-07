@@ -95,6 +95,7 @@ object AudioController {
         NativeBridge.setLimiterCeilingDb(store.getFloat(KEY_LIMITER_DB, 0f))
         NativeBridge.setHumFilterHz(store.getFloat(KEY_HUM_HZ, DEFAULT_HUM_HZ))
         NativeBridge.setGlobalBypass(store.getBoolean(KEY_GLOBAL_BYPASS, false))
+        NativeBridge.setAntiFeedback(store.getBoolean(KEY_ANTI_FEEDBACK, false))
         applyAmpDefault(store)
     }
 
@@ -362,6 +363,18 @@ object AudioController {
     fun humFilterHz(): Float =
         prefs?.getFloat(KEY_HUM_HZ, DEFAULT_HUM_HZ) ?: DEFAULT_HUM_HZ
 
+    /**
+     * Anti-feedback (penekan howling). Bawaan mati; pengguna dapat
+     * menyalakannya di Pengaturan saat memakai speaker/amp dan terjadi
+     * howling. Notch sempit dipasang otomatis pada frekuensi feedback.
+     */
+    fun setAntiFeedback(on: Boolean) {
+        prefs?.edit()?.putBoolean(KEY_ANTI_FEEDBACK, on)?.apply()
+        NativeBridge.setAntiFeedback(on)
+    }
+
+    fun isAntiFeedback(): Boolean = NativeBridge.isAntiFeedback()
+
     fun levels(): Levels = Levels(
         inputClipping = NativeBridge.inputClipping(),
         outputClipping = NativeBridge.outputClipping(),
@@ -437,6 +450,7 @@ object AudioController {
     private const val KEY_MUTED = "muted"
     private const val KEY_LIMITER_DB = "limiter_db"
     private const val KEY_HUM_HZ = "hum_filter_hz"
+    private const val KEY_ANTI_FEEDBACK = "anti_feedback"
     private const val KEY_GLOBAL_BYPASS = "global_bypass"
     private const val KEY_SETTINGS_VERSION = "settings_version"
     private const val KEY_AMP_DEFAULT_DONE = "amp_default_done"

@@ -472,3 +472,36 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeHumFilterEnabled(JNIEnv
                                                                          jobject /*thiz*/) {
     return engine().humFilterEnabled() ? JNI_TRUE : JNI_FALSE;
 }
+
+// ---- Anti-feedback (penekan howling) ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetAntiFeedback(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/,
+                                                                        jboolean on) {
+    engine().setAntiFeedback(on == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeAntiFeedback(JNIEnv * /*env*/,
+                                                                     jobject /*thiz*/) {
+    return engine().antiFeedback() ? JNI_TRUE : JNI_FALSE;
+}
+
+// ---- Peredam bising per efek (tombol "Noise") ----
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetEffectNoise(JNIEnv * /*env*/,
+                                                                       jobject /*thiz*/,
+                                                                       jint type,
+                                                                       jboolean on) {
+    engine().effects().setNoiseReduction(static_cast<alto::EffectType>(type), on == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeEffectNoise(JNIEnv * /*env*/,
+                                                                    jobject /*thiz*/,
+                                                                    jint type) {
+    return engine().effects().noiseReduction(static_cast<alto::EffectType>(type)) ? JNI_TRUE
+                                                                                  : JNI_FALSE;
+}

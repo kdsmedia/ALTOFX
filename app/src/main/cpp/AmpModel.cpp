@@ -65,8 +65,9 @@ void AmpModel::prepare(double sampleRate, int32_t channels) {
     }
     updateToneCoefficients(bass_.current(), mid_.current(), treble_.current(), presence_.current());
     saturator_.reset();
-    dcBlocker_.reset();
+    oversampler_.prepare(sampleRate, channels);
     for (int32_t c = 0; c < kMaxChannels; ++c) {
+        dcBlocker_[c].reset();
         inputHighPass_[c].reset();
         cabinet_[c].reset();
     }
@@ -74,8 +75,9 @@ void AmpModel::prepare(double sampleRate, int32_t channels) {
 
 void AmpModel::reset() {
     saturator_.reset();
-    dcBlocker_.reset();
+    oversampler_.reset();
     for (int32_t c = 0; c < kMaxChannels; ++c) {
+        dcBlocker_[c].reset();
         inputHighPass_[c].reset();
         bassFilter_[c].reset();
         midFilter_[c].reset();
@@ -130,13 +132,21 @@ void AmpModel::process(float* buffer, int32_t frames, int32_t channels) {
             float sample = buffer[frame * channels + c];
             sample = inputHighPass_[c].process(sample);
             sample *= preGain;
-            sample = saturator_.processTanh(sample, c);
+
+            // Saturasi preamp pada laju 2x untuk menekan aliasing (anti "pecah").
+            float a = 0.0f;
+            float b = 0.0f;
+            oversampler_.up(sample, c, a, b);
+            a = saturator_.processTanh(a, c);
+            b = saturator_.processTanh(b, c);
+            sample = oversampler_.down(a, b, c);
+
             sample = bassFilter_[c].process(sample);
             sample = midFilter_[c].process(sample);
             sample = trebleFilter_[c].process(sample);
             sample = presenceFilter_[c].process(sample);
             sample = cabinet_[c].process(sample);
-            sample = dcBlocker_.process(sample);
+            sample = dcBlocker_[c].process(sample);
             buffer[frame * channels + c] = sample * postGain;
         }
     }

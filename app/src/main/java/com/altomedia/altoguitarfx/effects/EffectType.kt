@@ -209,6 +209,21 @@ enum class EffectType(
             QuickPreset("Hall", mapOf(0 to 0.7f, 1 to 0.6f, 2 to 0.4f, 3 to 0.3f)),
             QuickPreset("Ambien", mapOf(0 to 0.9f, 1 to 0.85f, 2 to 0.3f, 3 to 0.45f))
         )
+    ),
+    AUTO_WAH(
+        id = 13,
+        label = "Auto Wah",
+        params = listOf(
+            ParamSpec("Sensitivity", 0f, 1f, 0.6f, ""),
+            ParamSpec("Range", 0f, 1f, 0.7f, ""),
+            ParamSpec("Resonance", 0.5f, 10f, 4f, ""),
+            ParamSpec("Mix", 0f, 1f, 0.9f, "")
+        ),
+        quickPresets = listOf(
+            QuickPreset("Funk", mapOf(0 to 0.75f, 1 to 0.85f, 2 to 5f, 3 to 0.95f)),
+            QuickPreset("Vokal", mapOf(0 to 0.6f, 1 to 0.6f, 2 to 3.5f, 3 to 0.8f)),
+            QuickPreset("Bass", mapOf(0 to 0.5f, 1 to 0.4f, 2 to 6f, 3 to 0.9f))
+        )
     )
 }
 

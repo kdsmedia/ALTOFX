@@ -45,7 +45,7 @@ int main() {
         EffectChain chain;
         auto before = chain.order();
         chain.moveEffect(EffectType::NoiseGate, -1);
-        chain.moveEffect(EffectType::Reverb, +1);
+        chain.moveEffect(EffectType::AutoWah, +1);
         bool ok = sameOrder(before, chain.order());
         printf("batas   tidak keluar rentang -> %s\n", ok ? "OK" : "GAGAL");
         pass += ok; total++;

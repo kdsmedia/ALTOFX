@@ -22,6 +22,7 @@ static const char* effectName(EffectType type) {
         case EffectType::Tremolo: return "Tremolo";
         case EffectType::Delay: return "Delay";
         case EffectType::Reverb: return "Reverb";
+        case EffectType::AutoWah: return "AutoWah";
         default: return "?";
     }
 }
@@ -114,6 +115,12 @@ static void configureStrong(EffectChain& chain, EffectType type) {
             chain.setParam(type, 1, 0.7f);
             chain.setParam(type, 2, 0.5f);
             chain.setParam(type, 3, 0.5f);
+            break;
+        case EffectType::AutoWah:
+            chain.setParam(type, 0, 0.8f);
+            chain.setParam(type, 1, 0.9f);
+            chain.setParam(type, 2, 8.0f);
+            chain.setParam(type, 3, 1.0f);
             break;
         default:
             break;

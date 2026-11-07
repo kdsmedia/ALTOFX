@@ -72,6 +72,18 @@ public:
 
     bool isEnabled() const { return enabled_.load(); }
 
+    /**
+     * Peredam bising per efek (tombol Noise pada popup pengaturan tiap efek).
+     * Bila aktif, pembersih bising ringan diterapkan pada jalur efek ini
+     * sehingga derau tidak ikut dikuatkan (khususnya sebelum saturasi).
+     * Bawaan mati (opt-in): peredam dengung global dan Noise Gate sudah
+     * menangani bising latar, dan menumpuk peredam di tiap efek dapat memotong
+     * ekor reverb/delay yang lembut.
+     */
+    void setNoiseReduction(bool on) { noiseReduction_.store(on); }
+
+    bool noiseReduction() const { return noiseReduction_.load(); }
+
     void setParam(int index, float value) {
         if (index >= 0 && index < paramCount_) {
             params_[index].store(value);
@@ -102,6 +114,7 @@ protected:
     int paramCount_;
     const char* name_;
     std::atomic<bool> enabled_{false};
+    std::atomic<bool> noiseReduction_{false};
     // Maksimum 8 parameter per efek; cukup untuk semua efek di rancangan.
     std::atomic<float> params_[8]{};
 };

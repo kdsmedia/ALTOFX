@@ -22,6 +22,7 @@ add_library(altoguitarfx SHARED
         Tremolo.cpp
         Delay.cpp
         Reverb.cpp
+        AutoWah.cpp
         PitchDetector.cpp
 )
 
