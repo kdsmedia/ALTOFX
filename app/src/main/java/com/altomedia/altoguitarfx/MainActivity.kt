@@ -6,18 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.altomedia.altoguitarfx.audio.AudioController
@@ -28,6 +25,7 @@ import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.navigation.AppNavigation
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.navigation.switchTab
+import com.altomedia.altoguitarfx.ui.components.AppBackground
 import com.altomedia.altoguitarfx.ui.theme.Accent
 import com.altomedia.altoguitarfx.ui.theme.AltoGuitarFxTheme
 import com.altomedia.altoguitarfx.ui.theme.PanelBg
@@ -116,7 +114,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AltoGuitarFxTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                AppBackground {
                     AltoGuitarFxApp()
                 }
             }
@@ -137,9 +135,9 @@ private fun AltoGuitarFxApp() {
     val current = Destination.fromRoute(backStackEntry?.destination?.route)
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         bottomBar = {
-            NavigationBar(containerColor = PanelBg) {
+            NavigationBar(containerColor = PanelBg.copy(alpha = 0.85f)) {
                 Destination.entries.forEach { destination ->
                     NavigationBarItem(
                         selected = destination == current,

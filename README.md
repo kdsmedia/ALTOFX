@@ -46,6 +46,8 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
   (drop-out), dan latensi round-trip terukur dari timestamp Oboe.
 - **Persistensi**: pilihan perangkat, sample rate, referensi tuner, trim input,
   gain output, dan mute bertahan antar sesi.
+- **Latar belakang brand**: gambar `Altomedia.png` dipakai sebagai latar penuh
+  layar dengan lapisan gelap agar UI tetap terbaca.
 
 ## Struktur proyek
 

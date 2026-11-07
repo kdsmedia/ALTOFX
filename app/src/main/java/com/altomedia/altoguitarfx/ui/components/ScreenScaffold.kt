@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.altomedia.altoguitarfx.ui.theme.BlackBg
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 
 /**
@@ -34,7 +33,6 @@ fun ScreenScaffold(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackBg)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 20.dp)
     ) {
@@ -71,7 +69,7 @@ fun PanelCard(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(16.dp)

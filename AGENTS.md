@@ -110,6 +110,12 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       5) **Pengaturan per efek** — rute `effect/{id}` + `EffectDetailScreen`;
          setiap efek punya halamannya sendiri (parameter, preset cepat, posisi
          rantai, reset), tidak lagi satu halaman gabungan.
+- [x] Latar belakang aplikasi memakai gambar brand `Altomedia.png` (disalin ke
+      `res/drawable-nodpi/bg_altomedia.png` agar tidak diskalakan densitas).
+      Komponen `AppBackground` menggambar gambar penuh layar (crop) plus lapisan
+      gelap (scrim) agar teks/panel tetap terbaca; `Scaffold` transparan dan
+      bilah navigasi semi-transparan. Panel (`PanelCard`) dibuat agak
+      transparan agar gambar tetap terlihat.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.
