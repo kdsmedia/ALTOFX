@@ -14,6 +14,7 @@ static const char* effectName(EffectType type) {
         case EffectType::Overdrive: return "Overdrive";
         case EffectType::Distortion: return "Distortion";
         case EffectType::Fuzz: return "Fuzz";
+        case EffectType::Amp: return "Amp";
         case EffectType::Equalizer: return "Equalizer";
         case EffectType::Chorus: return "Chorus";
         case EffectType::Flanger: return "Flanger";
@@ -76,6 +77,15 @@ static void configureStrong(EffectChain& chain, EffectType type) {
             chain.setParam(type, 0, 0.9f);
             chain.setParam(type, 1, 0.5f);
             chain.setParam(type, 2, 0.8f);
+            break;
+        case EffectType::Amp:
+            chain.setParam(type, 0, 2.0f);   // Lead
+            chain.setParam(type, 1, 18.0f);
+            chain.setParam(type, 2, 8.0f);
+            chain.setParam(type, 3, 6.0f);
+            chain.setParam(type, 4, 8.0f);
+            chain.setParam(type, 5, 6.0f);
+            chain.setParam(type, 6, 6.0f);
             break;
         case EffectType::Equalizer:
             chain.setParam(type, 0, 12.0f);

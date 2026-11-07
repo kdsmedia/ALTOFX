@@ -211,6 +211,7 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeMoveEffect(JNIEnv * /*e
     engine().effects().moveEffect(static_cast<alto::EffectType>(type), delta);
 }
 
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeResetEffectOrder(JNIEnv * /*env*/,
                                                                          jobject /*thiz*/) {

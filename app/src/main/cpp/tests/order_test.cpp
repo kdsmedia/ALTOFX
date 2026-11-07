@@ -28,11 +28,15 @@ int main() {
     // moveEffect: menukar dua slot bertetangga.
     {
         EffectChain chain;
+        const auto before = chain.order();
+        const int pos = 6;  // Equalizer (indeks enum) pada urutan bawaan.
         chain.moveEffect(EffectType::Equalizer, -1); // EQ naik satu langkah
         auto order = chain.order();
-        bool ok = order[4] == EffectType::Equalizer && order[5] == EffectType::Fuzz;
-        printf("move    EQ naik: slot4=%d slot5=%d -> %s\n",
-               (int)order[4], (int)order[5], ok ? "OK" : "GAGAL");
+        bool ok = order[pos - 1] == EffectType::Equalizer &&
+                  order[pos] == before[pos - 1];
+        printf("move    EQ naik: slot%d=%d slot%d=%d -> %s\n",
+               pos - 1, (int)order[pos - 1], pos, (int)order[pos],
+               ok ? "OK" : "GAGAL");
         pass += ok; total++;
     }
 

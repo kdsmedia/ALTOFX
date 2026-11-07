@@ -79,6 +79,18 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       ducking audio focus (perbaikan bug), pemilihan sample rate, restore default
       preset, reset seluruh efek saat interupsi (BAB 7), perbaikan bug indeks
       DelayLine (heap-buffer-overflow) yang ditemukan lewat AddressSanitizer.
+- [x] Pasca-rilis — audit menyeluruh + perbaikan "APK tidak berfungsi":
+      (a) perbaikan bug scroll bersarang di layar Tone (ScreenScaffold sudah
+      scrollable; scroll ganda memicu crash pengukuran tinggi), (b) efek **Amp**
+      baru (model amplifier: preamp ADAA -> tone stack bass/mid/treble ->
+      presence -> kabinet low-pass -> master; voicing Clean/Crunch/Lead; id 5),
+      (c) UI bergaya Tonebridge: komponen `Knob` putar + panel `AmpPanel` di Home
+      dan knob pada tiap layar efek, (d) pustaka **Tone** (`ToneLibrary`, 26 tone
+      bernama lagu/artis + pencarian) di layar Tone, (e) preset bawaan disusun
+      ulang memakai Amp sebagai inti, (f) Amp aktif bawaan (sekali, dihargai bila
+      pengguna mematikannya), (g) `DriveEffect`/gate/level sudah dipastikan benar
+      lewat suite host. 13 suite DSP + ASAN lolos, JNI 59/59, debug/release/AAB
+      build sukses, APK rilis tertanda tangan ALTOMEDIA.
 - [x] Hardening pembukaan stream audio (perbaikan "APK tidak berbunyi"):
       strategi berlapis `openOutputStream`/`openInputStream` (Exclusive ->
       Shared -> None -> sample rate bawaan perangkat), `setPackageName` selalu
@@ -196,6 +208,20 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   `android.permission.USB_PERMISSION` (bukan izin Android yang nyata).
 - Sample rate: `AudioEngine::setPreferredSampleRate` (default 48000). Perangkat
   dapat mengabaikannya; `sampleRate()` selalu melaporkan rate stream sebenarnya.
+- Efek **Amp** (`AmpModel`, id 5) adalah inti suara bergaya Tonebridge. Parameternya:
+  0 voicing (0 Clean / 1 Crunch / 2 Lead, dibulatkan), 1 gain dB, 2 bass, 3 mid,
+  4 treble, 5 presence, 6 master. Urutan pemrosesan internal: high-pass input ->
+  preamp ADAA (saturasi) -> tone stack (bass low-shelf, mid peak, treble/presence
+  high-shelf) -> low-pass kabinet -> DC blocker -> master. Semua dihaluskan.
+- Amp diaktifkan sekali pada instalasi baru lewat `AudioController.applyAmpDefault`
+  (kunci `amp_default_done`); bila pengguna mematikannya, pilihan itu dihormati.
+- `ToneLibrary` (Kotlin) berisi tone terkurasi (nama/artis/gaya -> preset); bukan
+  sampel audio asli, hanya setelan parameter. Jangan menambahkan klaim bahwa tone
+  adalah rekaman lagu.
+- Jangan menambahkan scroll bersarang: `ScreenScaffold` sudah `verticalScroll`.
+  Menaruh `LazyColumn`/`verticalScroll` di dalamnya memicu crash pengukuran tinggi.
+- Indeks slot pada `order_test.cpp` bergantung pada urutan enum; bila menambah efek,
+  perbarui posisi yang diuji (test sudah memakai indeks enum Equalizer).
 - Pembukaan stream HARUS berlapis (fallback): jangan memaksa Exclusive +
   Unprocessed + 1 kanal + 48 kHz tanpa alternatif. Banyak perangkat menolak
   kombinasi itu sehingga aplikasi tampak "tidak berbunyi". `setPackageName`

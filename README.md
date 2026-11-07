@@ -22,9 +22,18 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 
 ## Fitur
 
-- **12 efek** (blueprint bagian 7): Noise Gate, Compressor, Overdrive,
-  Distortion, Fuzz, Equalizer, Chorus, Flanger, Phaser, Tremolo, Delay, Reverb.
-  Setiap efek punya parameter, bypass, dan reset sendiri.
+- **13 efek** (blueprint bagian 7): Noise Gate, Compressor, Overdrive,
+  Distortion, Fuzz, **Amp** (model amplifier: preamp + tone stack + kabinet,
+  voicing Clean/Crunch/Lead), Equalizer, Chorus, Flanger, Phaser, Tremolo,
+  Delay, Reverb. Setiap efek punya parameter, bypass, dan reset sendiri.
+- **Antarmuka bergaya Tonebridge**: panel amplifier dengan knob putar
+  (Gain, Bass, Mid, Treble, Presence, Master) dan pemilih voicing; setiap
+  parameter efek juga diatur lewat knob. Model amplifier aktif secara bawaan
+  sehingga aplikasi langsung terdengar seperti amplifier, bukan sinyal mentah.
+- **Pustaka Tone**: 26 tone siap pakai yang dinamai sesuai lagu/artis
+  (mis. "Back in Black", "Smoke on the Water", "Enter Sandman") dengan
+  pencarian, di samping preset bawaan dan preset pengguna. Tone adalah hasil
+  rancangan parameter DSP (bukan sampel rekaman asli).
 - **Pedalboard bergaya pedal fisik**: setiap efek tampil sebagai kotak dengan
   LED dan tombol ON/OFF (sakelar kaki), tombol Preset cepat per efek, serta
   halaman pengaturan terpisah per efek.
@@ -32,8 +41,8 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
   dicolok; waktu tahan (hold) internal menjaga nada yang meluruh tidak terpotong.
 - **Urutan efek** dapat diubah dari UI (naik/turun, reset ke bawaan).
 - **Preset**: 9 preset bawaan (CLEAN, BLUES, ACOUSTIC, CRUNCH, ROCK, HARD ROCK,
-  METAL, LEAD SOLO, AMBIENT) + simpan, rename, duplikasi, hapus, dan restore
-  default.
+  METAL, LEAD SOLO, AMBIENT) + 26 tone siap pakai + simpan, rename, duplikasi,
+  hapus, dan restore default.
 - **Tuner** dengan referensi A4 yang dapat diubah (432–445 Hz).
 - **Level meter** input/output, indikator clipping, mute, dan bypass keseluruhan.
 - **Perangkat**: pemilihan input/output (mikrofon internal, headset, USB audio

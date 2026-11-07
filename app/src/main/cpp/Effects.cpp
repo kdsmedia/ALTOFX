@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "AmpModel.h"
 #include "Chorus.h"
 #include "Compressor.h"
 #include "Delay.h"
@@ -28,6 +29,8 @@ EffectChain::EffectChain() {
             "Distortion", DriveEffect::Shape::HardClip, 800.0f);
     effects_[static_cast<size_t>(EffectType::Fuzz)] = std::make_unique<DriveEffect>(
             "Fuzz", DriveEffect::Shape::Fuzz, 2000.0f);
+    // Model amplifier bergaya Tonebridge (preamp + tone stack + kabinet).
+    effects_[static_cast<size_t>(EffectType::Amp)] = std::make_unique<AmpModel>();
     // BAB 9: equalizer 3-band.
     effects_[static_cast<size_t>(EffectType::Equalizer)] = std::make_unique<Equalizer>();
     // BAB 10: efek modulasi.

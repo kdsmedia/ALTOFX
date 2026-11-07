@@ -14,6 +14,7 @@ add_library(altoguitarfx SHARED
         NoiseGate.cpp
         Compressor.cpp
         DriveEffect.cpp
+        AmpModel.cpp
         Equalizer.cpp
         Chorus.cpp
         Flanger.cpp

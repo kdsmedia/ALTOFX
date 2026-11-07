@@ -1,14 +1,17 @@
 package com.altomedia.altoguitarfx.ui.presets
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,144 +21,117 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.altomedia.altoguitarfx.data.Preset
 import com.altomedia.altoguitarfx.data.ActivePresetStore
 import com.altomedia.altoguitarfx.data.BuiltInPresets
+import com.altomedia.altoguitarfx.data.Preset
 import com.altomedia.altoguitarfx.data.PresetRepository
+import com.altomedia.altoguitarfx.data.ToneLibrary
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
 import com.altomedia.altoguitarfx.ui.theme.Accent
+import com.altomedia.altoguitarfx.ui.theme.PanelBgAlt
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
 
 /**
- * Presets (BAB 13). Memuat, menyimpan, mengganti nama, menduplikasi, dan
- * menghapus preset. Semua aksi benar-benar mengubah mesin DSP dan penyimpanan.
+ * Layar Tone bergaya Tonebridge: daftar tone siap pakai yang dinamai sesuai
+ * lagu/artis dengan pencarian, plus tab Preset Bawaan dan Preset Saya untuk
+ * menyimpan/mengelola preset pengguna.
  */
 @Composable
 fun PresetsScreen() {
     val context = LocalContext.current
     val repository = remember { PresetRepository(context) }
-    var presets by remember { mutableStateOf(repository.load()) }
-    // Preset aktif dibagi dengan Home lewat ActivePresetStore (blueprint bagian 6).
-    val activeName = ActivePresetStore.name
-    var dialog by remember { mutableStateOf<PresetDialog?>(null) }
+    var tab by remember { mutableStateOf(ToneTab.TONES) }
+    var query by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    var dialog by remember { mutableStateOf<PresetDialog?>(null) }
     var confirmRestore by remember { mutableStateOf(false) }
 
-    fun refresh() {
-        presets = repository.load()
+    var userPresets by remember { mutableStateOf(repository.load().filter { !it.builtIn }) }
+    val activeName = ActivePresetStore.name
+
+    fun load(preset: Preset) {
+        repository.apply(preset)
+        ActivePresetStore.set(preset)
+        message = "Tone '${preset.name}' dimuat."
     }
 
     ScreenScaffold(
-        title = "Presets",
-        subtitle = "Preset bawaan dan preset pengguna"
+        title = "Tone",
+        subtitle = "Tone siap pakai, preset bawaan, dan preset saya"
     ) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            PanelCard(title = "Simpan Keadaan Saat Ini") {
-                Text(
-                    text = "Menyimpan urutan efek, status aktif, dan seluruh " +
-                        "nilai parameter yang sedang aktif menjadi preset baru.",
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-                Row(
+        // ScreenScaffold sudah dapat di-scroll; jangan menambahkan scroll
+        // bersarang (dapat memicu kesalahan pengukuran tinggi tak terhingga).
+        // Tab bergaya Tonebridge.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(PanelBgAlt)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ToneTab.entries.forEach { entry ->
+                val selected = tab == entry
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(if (selected) Accent else PanelBgAlt)
+                        .clickable { tab = entry }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Button(
-                        onClick = { dialog = PresetDialog.SaveNew },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Simpan Baru")
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            activeName?.let { name ->
-                                repository.save(repository.capture(name))
-                                refresh()
-                                message = "Preset '$name' diperbarui."
-                            }
-                        },
-                        enabled = activeName != null,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Perbarui Aktif")
-                    }
-                }
-                if (activeName != null) {
                     Text(
-                        text = "Preset aktif: $activeName",
-                        color = Accent,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-                if (message.isNotEmpty()) {
-                    Text(
-                        text = message,
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 6.dp)
+                        text = entry.label,
+                        color = if (selected) androidx.compose.ui.graphics.Color.Black
+                        else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
+        }
 
-            // Restore default (blueprint bagian 6): hapus preset pengguna dan
-            // kembalikan preset aktif ke bawaan.
-            PanelCard(
-                title = "Restore Default",
-                modifier = Modifier.padding(bottom = 10.dp)
-            ) {
-                Text(
-                    text = "Menghapus seluruh preset pengguna dan memuat preset " +
-                        "bawaan CLEAN. Tindakan ini tidak dapat dibatalkan.",
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-                OutlinedButton(
-                    onClick = { confirmRestore = true },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text("Restore Default")
-                }
-            }
+        if (message.isNotEmpty()) {
+            Text(
+                text = message,
+                color = Accent,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
 
-            presets.forEach { preset ->
-                PresetRow(
-                    preset = preset,
-                    active = preset.name == activeName,
-                    onLoad = {
-                        repository.apply(preset)
-                        ActivePresetStore.set(preset)
-                        message = "Preset '${preset.name}' dimuat."
-                    },
-                    onRename = { dialog = PresetDialog.Rename(preset) },
-                    onDuplicate = { dialog = PresetDialog.Duplicate(preset) },
-                    onDelete = {
-                        repository.delete(preset.name)
-                        if (activeName == preset.name) ActivePresetStore.setName(null, false)
-                        refresh()
-                        message = "Preset '${preset.name}' dihapus."
-                    }
-                )
-            }
-
-            if (presets.none { !it.builtIn }) {
-                Text(
-                    text = "Belum ada preset pengguna. Gunakan 'Simpan Baru' " +
-                        "untuk menambahkan.",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
+        when (tab) {
+            ToneTab.TONES -> ToneList(
+                query = query,
+                onQueryChange = { query = it },
+                activeName = activeName,
+                onLoad = { tone -> load(ToneLibrary.preset(tone)) }
+            )
+            ToneTab.BUILTIN -> BuiltinList(activeName = activeName, onLoad = ::load)
+            ToneTab.MINE -> MyPresets(
+                presets = userPresets,
+                activeName = activeName,
+                onLoad = ::load,
+                onSaveCurrent = { dialog = PresetDialog.SaveNew },
+                onRename = { dialog = PresetDialog.Rename(it) },
+                onDuplicate = { dialog = PresetDialog.Duplicate(it) },
+                onDelete = {
+                    repository.delete(it.name)
+                    if (activeName == it.name) ActivePresetStore.setName(null, false)
+                    userPresets = repository.load().filter { p -> !p.builtIn }
+                    message = "Preset '${it.name}' dihapus."
+                },
+                onRestoreDefault = { confirmRestore = true }
+            )
         }
     }
 
@@ -163,24 +139,17 @@ fun PresetsScreen() {
         AlertDialog(
             onDismissRequest = { confirmRestore = false },
             title = { Text("Restore Default") },
-            text = {
-                Text(
-                    "Hapus semua preset pengguna dan kembalikan ke preset " +
-                        "bawaan CLEAN?"
-                )
-            },
+            text = { Text("Hapus semua preset pengguna dan kembalikan ke CLEAN?") },
             confirmButton = {
                 TextButton(onClick = {
                     repository.clearUserPresets()
                     val clean = BuiltInPresets.all().first()
                     repository.apply(clean)
                     ActivePresetStore.set(clean)
-                    refresh()
+                    userPresets = repository.load().filter { !it.builtIn }
                     message = "Preset dikembalikan ke bawaan."
                     confirmRestore = false
-                }) {
-                    Text("Ya, Restore")
-                }
+                }) { Text("Ya, Restore") }
             },
             dismissButton = {
                 TextButton(onClick = { confirmRestore = false }) { Text("Batal") }
@@ -200,7 +169,9 @@ fun PresetsScreen() {
                     }
                     is PresetDialog.Rename -> {
                         repository.rename(request.preset.name, name)
-                        if (activeName == request.preset.name) ActivePresetStore.setName(name, true)
+                        if (activeName == request.preset.name) {
+                            ActivePresetStore.setName(name, true)
+                        }
                         message = "Preset diganti nama menjadi '$name'."
                     }
                     is PresetDialog.Duplicate -> {
@@ -208,11 +179,171 @@ fun PresetsScreen() {
                         message = "Preset diduplikasi menjadi '$name'."
                     }
                 }
-                refresh()
+                userPresets = repository.load().filter { !it.builtIn }
                 dialog = null
             },
             onDismiss = { dialog = null }
         )
+    }
+}
+
+/** Tab pada layar Tone. */
+private enum class ToneTab(val label: String) {
+    TONES("Tone"),
+    BUILTIN("Bawaan"),
+    MINE("Preset Saya")
+}
+
+@Composable
+private fun ToneList(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    activeName: String?,
+    onLoad: (ToneLibrary.Tone) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        singleLine = true,
+        label = { Text("Cari lagu atau artis") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+    )
+
+    val tones = remember(query) {
+        val q = query.trim().lowercase()
+        ToneLibrary.all().filter {
+            q.isEmpty() || it.name.lowercase().contains(q) ||
+                it.artist.lowercase().contains(q) || it.style.lowercase().contains(q)
+        }
+    }
+
+    if (tones.isEmpty()) {
+        Text(
+            text = "Tidak ada tone yang cocok dengan pencarian.",
+            color = TextSecondary,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+    }
+
+    tones.forEach { tone ->
+        ToneCard(tone = tone, active = tone.name == activeName, onLoad = { onLoad(tone) })
+    }
+}
+
+@Composable
+private fun ToneCard(tone: ToneLibrary.Tone, active: Boolean, onLoad: () -> Unit) {
+    PanelCard(
+        title = tone.name,
+        modifier = Modifier.padding(top = 10.dp)
+    ) {
+        Text(
+            text = "${tone.artist} • ${tone.style}",
+            color = TextSecondary,
+            fontSize = 12.sp
+        )
+        Text(
+            text = "★".repeat(tone.rating) + "☆".repeat(5 - tone.rating),
+            color = Accent,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = onLoad) {
+                Text(if (active) "Muat Ulang" else "Muat", color = MaterialTheme.colorScheme.onPrimary)
+            }
+            if (active) {
+                Text("AKTIF", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BuiltinList(activeName: String?, onLoad: (Preset) -> Unit) {
+    BuiltInPresets.all().forEach { preset ->
+        PresetRow(
+            preset = preset,
+            active = preset.name == activeName,
+            onLoad = { onLoad(preset) },
+            onRename = null,
+            onDuplicate = null,
+            onDelete = null
+        )
+    }
+}
+
+@Composable
+private fun MyPresets(
+    presets: List<Preset>,
+    activeName: String?,
+    onLoad: (Preset) -> Unit,
+    onSaveCurrent: () -> Unit,
+    onRename: (Preset) -> Unit,
+    onDuplicate: (Preset) -> Unit,
+    onDelete: (Preset) -> Unit,
+    onRestoreDefault: () -> Unit
+) {
+    PanelCard(title = "Simpan Keadaan Saat Ini") {
+        Text(
+            text = "Menyimpan urutan efek, status aktif, dan seluruh nilai " +
+                "parameter yang sedang aktif menjadi preset baru.",
+            color = TextSecondary,
+            fontSize = 12.sp
+        )
+        Button(
+            onClick = onSaveCurrent,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Simpan Baru", color = MaterialTheme.colorScheme.onPrimary)
+        }
+    }
+
+    if (presets.isEmpty()) {
+        Text(
+            text = "Belum ada preset pengguna. Gunakan 'Simpan Baru' untuk " +
+                "menambahkan.",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 10.dp)
+        )
+    }
+
+    presets.forEach { preset ->
+        PresetRow(
+            preset = preset,
+            active = preset.name == activeName,
+            onLoad = { onLoad(preset) },
+            onRename = { onRename(preset) },
+            onDuplicate = { onDuplicate(preset) },
+            onDelete = { onDelete(preset) }
+        )
+    }
+
+    PanelCard(
+        title = "Restore Default",
+        modifier = Modifier.padding(top = 10.dp)
+    ) {
+        Text(
+            text = "Menghapus seluruh preset pengguna dan memuat preset bawaan " +
+                "CLEAN. Tindakan ini tidak dapat dibatalkan.",
+            color = TextSecondary,
+            fontSize = 12.sp
+        )
+        OutlinedButton(
+            onClick = onRestoreDefault,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Restore Default")
+        }
     }
 }
 
@@ -228,13 +359,13 @@ private fun PresetRow(
     preset: Preset,
     active: Boolean,
     onLoad: () -> Unit,
-    onRename: () -> Unit,
-    onDuplicate: () -> Unit,
-    onDelete: () -> Unit
+    onRename: (() -> Unit)?,
+    onDuplicate: (() -> Unit)?,
+    onDelete: (() -> Unit)?
 ) {
     PanelCard(
         title = preset.name,
-        modifier = Modifier.padding(bottom = 10.dp)
+        modifier = Modifier.padding(top = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -266,10 +397,23 @@ private fun PresetRow(
                 .padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(onClick = onLoad) { Text("Muat") }
-            OutlinedButton(onClick = onRename, enabled = !preset.builtIn) { Text("Ganti Nama") }
-            OutlinedButton(onClick = onDuplicate) { Text("Duplikat") }
-            OutlinedButton(onClick = onDelete, enabled = !preset.builtIn) { Text("Hapus") }
+            Button(onClick = onLoad) {
+                Text("Muat", color = MaterialTheme.colorScheme.onPrimary)
+            }
+            if (onRename != null) {
+                OutlinedButton(onClick = onRename) { Text("Ganti Nama") }
+            }
+            if (onDuplicate != null) {
+                OutlinedButton(onClick = onDuplicate) { Text("Duplikat") }
+            }
+            if (onDelete != null) {
+                OutlinedButton(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("Hapus") }
+            }
         }
     }
 }

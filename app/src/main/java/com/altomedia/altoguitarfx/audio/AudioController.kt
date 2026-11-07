@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 
+import com.altomedia.altoguitarfx.effects.EffectType
+
 /**
  * Kontrol audio tingkat aplikasi (BAB 4-5).
  *
@@ -85,6 +87,18 @@ object AudioController {
         NativeBridge.setMuted(store.getBoolean(KEY_MUTED, false))
         NativeBridge.setLimiterCeilingDb(store.getFloat(KEY_LIMITER_DB, 0f))
         NativeBridge.setGlobalBypass(store.getBoolean(KEY_GLOBAL_BYPASS, false))
+        applyAmpDefault(store)
+    }
+
+    /**
+     * Mengaktifkan model amplifier sekali pada instalasi baru (gaya
+     * Tonebridge: aplikasi langsung terdengar seperti amplifier). Bila
+     * pengguna pernah mematikan Amp, pilihannya dihormati pada sesi berikutnya.
+     */
+    private fun applyAmpDefault(store: SharedPreferences) {
+        if (store.getBoolean(KEY_AMP_DEFAULT_DONE, false)) return
+        NativeBridge.setEffectEnabled(EffectType.AMP.id, true)
+        store.edit().putBoolean(KEY_AMP_DEFAULT_DONE, true).apply()
     }
 
     /**
@@ -404,6 +418,7 @@ object AudioController {
     private const val KEY_LIMITER_DB = "limiter_db"
     private const val KEY_GLOBAL_BYPASS = "global_bypass"
     private const val KEY_SETTINGS_VERSION = "settings_version"
+    private const val KEY_AMP_DEFAULT_DONE = "amp_default_done"
 
     private fun current(message: String): Status = Status(
         running = NativeBridge.isRunning(),

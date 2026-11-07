@@ -10,6 +10,7 @@
 
 namespace alto {
 
+
 /**
  * Urutan tetap efek pada versi pertama (lihat PDF bagian 3):
  * Noise Gate -> Compressor -> Drive/Distortion/Fuzz -> EQ -> Modulation ->
@@ -23,20 +24,21 @@ enum class EffectType : int {
     Overdrive = 2,
     Distortion = 3,
     Fuzz = 4,
-    Equalizer = 5,
-    Chorus = 6,
-    Flanger = 7,
-    Phaser = 8,
-    Tremolo = 9,
-    Delay = 10,
-    Reverb = 11,
-    Count = 12
+    Amp = 5,
+    Equalizer = 6,
+    Chorus = 7,
+    Flanger = 8,
+    Phaser = 9,
+    Tremolo = 10,
+    Delay = 11,
+    Reverb = 12,
+    Count = 13
 };
 
 /**
  * Pengelola rangkaian efek (BAB 7+).
  *
- * Seluruh 12 efek sudah terpasang; pengecekan null tetap dipertahankan sebagai
+ * Seluruh 13 efek sudah terpasang; pengecekan null tetap dipertahankan sebagai
  * pertahanan bila suatu slot belum terisi. Semua metode pengaturan aman
  * dipanggil dari thread UI; [process] dipanggil dari jalur real-time dan tidak
  * mengalokasi memori.

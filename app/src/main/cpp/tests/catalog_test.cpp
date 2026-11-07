@@ -25,6 +25,7 @@ static const CatalogEntry kCatalog[] = {
     {EffectType::Overdrive, "Overdrive", 3},
     {EffectType::Distortion, "Distortion", 3},
     {EffectType::Fuzz, "Fuzz", 3},
+    {EffectType::Amp, "Amp", 7},
     {EffectType::Equalizer, "Equalizer", 3},
     {EffectType::Chorus, "Chorus", 3},
     {EffectType::Flanger, "Flanger", 4},
@@ -63,6 +64,15 @@ static void configureStrong(EffectChain& chain, EffectType type) {
         case EffectType::Fuzz:
             chain.setParam(type, 0, 0.9f); chain.setParam(type, 1, 0.6f);
             chain.setParam(type, 2, 0.9f);
+            break;
+        case EffectType::Amp:
+            chain.setParam(type, 0, 2.0f);   // voicing Lead
+            chain.setParam(type, 1, 18.0f);  // gain
+            chain.setParam(type, 2, 8.0f);   // bass
+            chain.setParam(type, 3, 6.0f);   // mid
+            chain.setParam(type, 4, 8.0f);   // treble
+            chain.setParam(type, 5, 6.0f);   // presence
+            chain.setParam(type, 6, 6.0f);   // master
             break;
         case EffectType::Equalizer:
             chain.setParam(type, 0, 10.0f); chain.setParam(type, 1, -10.0f);

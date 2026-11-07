@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.altomedia.altoguitarfx.effects.EffectController
 import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.effects.ParamSpec
+import com.altomedia.altoguitarfx.ui.components.Knob
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
 import com.altomedia.altoguitarfx.ui.theme.Accent
@@ -130,20 +130,43 @@ fun EffectDetailScreen(effectId: Int, onBack: () -> Unit) {
             }
         }
 
-        // Kontrol parameter efek ini saja.
+        // Kontrol parameter efek ini saja, disusun sebagai deretan knob
+        // bergaya panel amplifier (Tonebridge).
         PanelCard(
             title = "Parameter",
             modifier = Modifier.padding(top = 12.dp)
         ) {
-            type.params.forEachIndexed { index, spec ->
-                ParamSlider(
-                    spec = spec,
-                    value = values[index],
-                    onValueChange = { newValue ->
-                        values = values.toMutableList().also { it[index] = newValue }
-                        EffectController.setParam(type, index, newValue)
+            Text(
+                text = "Geser knob ke atas/bawah untuk mengubah nilai.",
+                color = TextSecondary,
+                fontSize = 12.sp
+            )
+            type.params.indices.chunked(3).forEach { rowIndices ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    rowIndices.forEach { index ->
+                        val spec = type.params[index]
+                        Knob(
+                            label = spec.label,
+                            value = values[index],
+                            range = spec.min..spec.max,
+                            accent = if (enabled) Accent else TextSecondary,
+                            valueText = formatValue(values[index], spec),
+                            onChange = { newValue ->
+                                values = values.toMutableList().also { it[index] = newValue }
+                                EffectController.setParam(type, index, newValue)
+                            }
+                        )
                     }
-                )
+                    // Isi sisa baris agar knob tetap rata kiri.
+                    repeat(3 - rowIndices.size) {
+                        Column(modifier = Modifier.weight(1f)) {}
+                    }
+                }
             }
         }
 
@@ -182,33 +205,7 @@ fun EffectDetailScreen(effectId: Int, onBack: () -> Unit) {
     }
 }
 
-/** Slider satu parameter dengan label dan nilai berformat. */
-@Composable
-private fun ParamSlider(
-    spec: ParamSpec,
-    value: Float,
-    onValueChange: (Float) -> Unit
-) {
-    Column(modifier = Modifier.padding(top = 10.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = spec.label, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
-            Text(
-                text = formatValue(value, spec),
-                color = Accent,
-                fontSize = 13.sp
-            )
-        }
-        Slider(
-            value = value.coerceIn(spec.min, spec.max),
-            onValueChange = onValueChange,
-            valueRange = spec.min..spec.max
-        )
-    }
-}
-
+/** Memformat nilai parameter: jumlah desimal mengikuti lebar rentang. */
 private fun formatValue(value: Float, spec: ParamSpec): String {
     val decimals = when {
         spec.max - spec.min <= 2f -> 2

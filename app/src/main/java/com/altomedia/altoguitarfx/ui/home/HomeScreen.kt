@@ -42,6 +42,7 @@ import com.altomedia.altoguitarfx.data.PresetRepository
 import com.altomedia.altoguitarfx.effects.EffectController
 import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.navigation.Destination
+import com.altomedia.altoguitarfx.ui.components.AmpPanel
 import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
 import com.altomedia.altoguitarfx.ui.components.PedalBox
@@ -196,6 +197,8 @@ fun HomeScreen(onNavigate: (Destination) -> Unit) {
         }
 
         PedalboardPanel(onNavigate = onNavigate)
+
+        AmpPanel(modifier = Modifier.padding(top = 12.dp))
 
         RoutingPanel(status = status, onStatus = { status = it })
 

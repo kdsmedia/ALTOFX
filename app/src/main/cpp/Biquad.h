@@ -60,6 +60,32 @@ public:
         normalize(b0, b1, b2, a0, a1, a2);
     }
 
+    void setHighPass(float sampleRate, float frequency, float q) {
+        const float w = omega(sampleRate, frequency);
+        const float cosW = std::cos(w);
+        const float alpha = std::sin(w) / (2.0f * q);
+        const float b0 = (1.0f + cosW) / 2.0f;
+        const float b1 = -(1.0f + cosW);
+        const float b2 = (1.0f + cosW) / 2.0f;
+        const float a0 = 1.0f + alpha;
+        const float a1 = -2.0f * cosW;
+        const float a2 = 1.0f - alpha;
+        normalize(b0, b1, b2, a0, a1, a2);
+    }
+
+    void setLowPass(float sampleRate, float frequency, float q) {
+        const float w = omega(sampleRate, frequency);
+        const float cosW = std::cos(w);
+        const float alpha = std::sin(w) / (2.0f * q);
+        const float b0 = (1.0f - cosW) / 2.0f;
+        const float b1 = 1.0f - cosW;
+        const float b2 = (1.0f - cosW) / 2.0f;
+        const float a0 = 1.0f + alpha;
+        const float a1 = -2.0f * cosW;
+        const float a2 = 1.0f - alpha;
+        normalize(b0, b1, b2, a0, a1, a2);
+    }
+
     float process(float x) {
         const float y = b0_ * x + b1_ * x1_ + b2_ * x2_ - a1_ * y1_ - a2_ * y2_;
         x2_ = x1_;

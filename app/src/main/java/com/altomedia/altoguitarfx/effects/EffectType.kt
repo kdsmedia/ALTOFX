@@ -91,8 +91,26 @@ enum class EffectType(
             QuickPreset("Wild", mapOf(0 to 0.9f, 1 to 0.6f, 2 to 0.65f))
         )
     ),
-    EQUALIZER(
+    AMP(
         id = 5,
+        label = "Amp",
+        params = listOf(
+            ParamSpec("Voicing", 0f, 2f, 1f, ""),
+            ParamSpec("Gain", -12f, 30f, 8f, "dB"),
+            ParamSpec("Bass", -12f, 12f, 2f, "dB"),
+            ParamSpec("Mid", -12f, 12f, 0f, "dB"),
+            ParamSpec("Treble", -12f, 12f, 2f, "dB"),
+            ParamSpec("Presence", -12f, 12f, 0f, "dB"),
+            ParamSpec("Master", -24f, 12f, 0f, "dB")
+        ),
+        quickPresets = listOf(
+            QuickPreset("Clean", mapOf(0 to 0f, 1 to 4f, 2 to 3f, 3 to -1f, 4 to 3f, 5 to 1f, 6 to 0f)),
+            QuickPreset("Crunch", mapOf(0 to 1f, 1 to 14f, 2 to 2f, 3 to 1f, 4 to 3f, 5 to 1f, 6 to -2f)),
+            QuickPreset("Lead", mapOf(0 to 2f, 1 to 22f, 2 to 4f, 3 to 4f, 4 to 4f, 5 to 2f, 6 to -6f))
+        )
+    ),
+    EQUALIZER(
+        id = 6,
         label = "Equalizer",
         params = listOf(
             ParamSpec("Bass", -12f, 12f, 0f, "dB"),
@@ -107,7 +125,7 @@ enum class EffectType(
         )
     ),
     CHORUS(
-        id = 6,
+        id = 7,
         label = "Chorus",
         params = listOf(
             ParamSpec("Rate", 0.1f, 8f, 1.0f, "Hz"),
@@ -121,7 +139,7 @@ enum class EffectType(
         )
     ),
     FLANGER(
-        id = 7,
+        id = 8,
         label = "Flanger",
         params = listOf(
             ParamSpec("Rate", 0.05f, 5f, 0.5f, "Hz"),
@@ -136,7 +154,7 @@ enum class EffectType(
         )
     ),
     PHASER(
-        id = 8,
+        id = 9,
         label = "Phaser",
         params = listOf(
             ParamSpec("Rate", 0.05f, 5f, 0.5f, "Hz"),
@@ -151,7 +169,7 @@ enum class EffectType(
         )
     ),
     TREMOLO(
-        id = 9,
+        id = 10,
         label = "Tremolo",
         params = listOf(
             ParamSpec("Rate", 0.5f, 15f, 5f, "Hz"),
@@ -164,7 +182,7 @@ enum class EffectType(
         )
     ),
     DELAY(
-        id = 10,
+        id = 11,
         label = "Delay",
         params = listOf(
             ParamSpec("Time", 20f, 1000f, 300f, "ms"),
@@ -178,7 +196,7 @@ enum class EffectType(
         )
     ),
     REVERB(
-        id = 11,
+        id = 12,
         label = "Reverb",
         params = listOf(
             ParamSpec("Size", 0f, 1f, 0.5f, ""),
