@@ -60,24 +60,37 @@ class MainActivity : ComponentActivity() {
             }
         }
         // BAB 10/15: bila perangkat aktif dicabut, mulai ulang dengan perangkat
-        // bawaan supaya audio tidak berhenti tanpa penjelasan.
-        val callback = deviceManager.observe {
-            AudioController.selectedInputId().let { id ->
-                if (id != AudioController.DEFAULT_DEVICE_ID &&
-                    deviceManager.inputDevices().none { it.id == id }
-                ) {
-                    AudioController.handleInputDisconnected(id)
+        // bawaan supaya audio tidak berhenti tanpa penjelasan. Bila perangkat
+        // headset/USB (mis. iRig di jack headset) dicolok dan pengguna masih
+        // memakai input default, pilih otomatis agar langsung berfungsi.
+        val onDevicesChanged = {
+            val inputId = AudioController.selectedInputId()
+            val inputMissing = inputId != AudioController.DEFAULT_DEVICE_ID &&
+                deviceManager.inputDevices().none { it.id == inputId }
+            if (inputMissing) {
+                AudioController.handleInputDisconnected(inputId)
+            } else if (inputId == AudioController.DEFAULT_DEVICE_ID) {
+                val headset = deviceManager.inputDevices().firstOrNull {
+                    it.type == android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                        it.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET ||
+                        it.type == android.media.AudioDeviceInfo.TYPE_USB_DEVICE
+                }
+                if (headset != null) {
+                    AudioController.switchInput(headset.id)
                 }
             }
-            AudioController.selectedOutputId().let { id ->
-                if (id != AudioController.DEFAULT_DEVICE_ID &&
-                    deviceManager.outputDevices().none { it.id == id }
-                ) {
-                    AudioController.handleOutputDisconnected(id)
-                }
+
+            val outputId = AudioController.selectedOutputId()
+            if (outputId != AudioController.DEFAULT_DEVICE_ID &&
+                deviceManager.outputDevices().none { it.id == outputId }
+            ) {
+                AudioController.handleOutputDisconnected(outputId)
             }
         }
-        deviceCallback = callback
+        // Jalankan sekali saat mulai: bila iRig sudah tercolok sejak awal,
+        // input langsung dipilih tanpa menunggu perubahan perangkat.
+        onDevicesChanged()
+        deviceCallback = deviceManager.observe(onDevicesChanged)
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {

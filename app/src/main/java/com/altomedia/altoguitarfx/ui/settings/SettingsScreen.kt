@@ -221,7 +221,9 @@ fun SettingsScreen() {
                 text = if (manager.hasUsbDevice())
                     "Audio interface USB terdeteksi (mis. iRig)."
                 else
-                    "Tidak ada perangkat USB. Gunakan mikrofon internal atau colok iRig.",
+                    "Tidak ada perangkat USB. iRig yang dicolok ke lubang " +
+                        "headset akan muncul sebagai 'Headset kabel' di Sumber " +
+                        "Input; pilih perangkat itu bila belum terpilih otomatis.",
                 color = TextSecondary,
                 fontSize = 13.sp
             )

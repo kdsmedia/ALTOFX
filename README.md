@@ -32,7 +32,9 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 - **Tuner** dengan referensi A4 yang dapat diubah (432–445 Hz).
 - **Level meter** input/output, indikator clipping, mute, dan bypass keseluruhan.
 - **Perangkat**: pemilihan input/output (mikrofon internal, headset, USB audio
-  seperti iRig), izin USB, deteksi cabut/colok otomatis.
+  seperti iRig), izin USB, deteksi cabut/colok otomatis. iRig yang dicolok ke
+  lubang headset (jack 3.5 mm) muncul sebagai "Headset kabel" dan dipilih
+  otomatis bila pengguna masih memakai input default.
 - **Audio focus**: ducking (−12 dB) saat fokus sementara hilang, pause/resume
   otomatis pada lifecycle.
 - **Performa & latensi**: beban callback rata-rata/puncak, jumlah xrun

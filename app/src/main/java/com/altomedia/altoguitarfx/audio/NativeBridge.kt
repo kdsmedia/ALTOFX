@@ -55,6 +55,23 @@ object NativeBridge {
         if (isLoaded) nativeSetPreferredSampleRate(sampleRate)
     }
 
+    /**
+     * Nama paket aplikasi (wajib untuk stream input pada Android 12+/API 31+
+     * agar pemeriksaan izin tidak menolak stream).
+     */
+    fun setPackageName(packageName: String) {
+        if (isLoaded) nativeSetPackageName(packageName)
+    }
+
+    /**
+     * Menandai bahwa input yang dipilih adalah perangkat yang terhubung ke
+     * jack headset (mis. iRig yang dicolok ke lubang headset). Memengaruhi
+     * pemilihan InputPreset di sisi native.
+     */
+    fun setHeadsetInput(headset: Boolean) {
+        if (isLoaded) nativeSetHeadsetInput(headset)
+    }
+
     fun preferredSampleRate(): Int = if (isLoaded) nativePreferredSampleRate() else 48000
 
     // ---- Level & diagnostik (BAB 6) ----
@@ -265,6 +282,10 @@ object NativeBridge {
     private external fun nativeSetDeviceIds(inputDeviceId: Int, outputDeviceId: Int)
 
     private external fun nativeSetPreferredSampleRate(sampleRate: Int)
+
+    private external fun nativeSetPackageName(packageName: String)
+
+    private external fun nativeSetHeadsetInput(headset: Boolean)
 
     private external fun nativePreferredSampleRate(): Int
 

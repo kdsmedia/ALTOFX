@@ -85,6 +85,20 @@ Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetPreferredSampleRate(
     engine().setPreferredSampleRate(sampleRate);
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetPackageName(JNIEnv *env,
+                                                                       jobject /*thiz*/,
+                                                                       jstring packageName) {
+    engine().setPackageName(jstringToStd(env, packageName));
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativeSetHeadsetInput(JNIEnv * /*env*/,
+                                                                        jobject /*thiz*/,
+                                                                        jboolean headset) {
+    engine().setHeadsetInput(headset == JNI_TRUE);
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_altomedia_altoguitarfx_audio_NativeBridge_nativePreferredSampleRate(
         JNIEnv * /*env*/, jobject /*thiz*/) {

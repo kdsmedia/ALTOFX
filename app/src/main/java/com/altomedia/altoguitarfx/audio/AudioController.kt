@@ -2,6 +2,8 @@ package com.altomedia.altoguitarfx.audio
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 
 /**
  * Kontrol audio tingkat aplikasi (BAB 4-5).
@@ -31,6 +33,7 @@ object AudioController {
     private var outputDeviceId: Int = DEFAULT_DEVICE_ID
     private var preferredSampleRate: Int = DEFAULT_SAMPLE_RATE
     private var prefs: SharedPreferences? = null
+    private var appContext: Context? = null
 
     /**
      * Memuat pilihan perangkat dan sample rate yang tersimpan (blueprint
@@ -41,11 +44,14 @@ object AudioController {
         val store = context.applicationContext
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs = store
+        appContext = context.applicationContext
         inputDeviceId = store.getInt(KEY_INPUT_DEVICE, DEFAULT_DEVICE_ID)
         outputDeviceId = store.getInt(KEY_OUTPUT_DEVICE, DEFAULT_DEVICE_ID)
         preferredSampleRate =
             store.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE).takeIf { it > 0 }
                 ?: DEFAULT_SAMPLE_RATE
+        // Nama paket wajib untuk stream input pada Android 12+ (API 31+).
+        NativeBridge.setPackageName(context.packageName)
         NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
         NativeBridge.setPreferredSampleRate(preferredSampleRate)
         NativeBridge.setTunerReference(
@@ -54,6 +60,8 @@ object AudioController {
         NativeBridge.setInputGainDb(store.getFloat(KEY_INPUT_GAIN_DB, 0f))
         NativeBridge.setOutputGainDb(store.getFloat(KEY_OUTPUT_GAIN_DB, 0f))
         NativeBridge.setMuted(store.getBoolean(KEY_MUTED, false))
+        NativeBridge.setLimiterCeilingDb(store.getFloat(KEY_LIMITER_DB, 0f))
+        NativeBridge.setGlobalBypass(store.getBoolean(KEY_GLOBAL_BYPASS, false))
     }
 
     /**
@@ -73,11 +81,43 @@ object AudioController {
     fun selectInput(deviceId: Int) {
         inputDeviceId = deviceId
         prefs?.edit()?.putInt(KEY_INPUT_DEVICE, deviceId)?.apply()
+        applyHeadsetInputFlag()
     }
 
     fun selectOutput(deviceId: Int) {
         outputDeviceId = deviceId
         prefs?.edit()?.putInt(KEY_OUTPUT_DEVICE, deviceId)?.apply()
+    }
+
+    /**
+     * Memberi tahu engine native apakah input terpilih berupa perangkat yang
+     * terhubung ke jack headset (headset kabel / USB-C-to-3.5mm). Ini penting
+     * untuk iRig yang dicolok ke lubang headset: pada banyak perangkat, preset
+     * input VoiceRecognition-lah yang membuka mikrofon TRRS dengan benar.
+     *
+     * Bila perangkat tidak dapat dipetakan (mis. perangkat sudah dicabut),
+     * tidak ada yang diubah; jalur native tetap punya fallback sendiri.
+     */
+    private fun applyHeadsetInputFlag() {
+        val context = appContext ?: return
+        val id = inputDeviceId
+        if (id == DEFAULT_DEVICE_ID) {
+            NativeBridge.setHeadsetInput(false)
+            return
+        }
+        val device = runCatching {
+            val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            manager.getDevices(AudioManager.GET_DEVICES_INPUTS).firstOrNull { it.id == id }
+        }.getOrNull() ?: return
+        val headset = when (device.type) {
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+            AudioDeviceInfo.TYPE_USB_HEADSET,
+            AudioDeviceInfo.TYPE_USB_DEVICE,
+            AudioDeviceInfo.TYPE_USB_ACCESSORY -> true
+            else -> false
+        }
+        NativeBridge.setHeadsetInput(headset)
     }
 
     /**
@@ -129,6 +169,8 @@ object AudioController {
     fun handleInputDisconnected(deviceId: Int): Status? {
         if (deviceId != inputDeviceId) return null
         inputDeviceId = DEFAULT_DEVICE_ID
+        // Simpan reset agar sesi berikutnya tidak mencoba perangkat yang hilang.
+        prefs?.edit()?.putInt(KEY_INPUT_DEVICE, DEFAULT_DEVICE_ID)?.apply()
         return if (NativeBridge.isRunning()) start() else refresh()
     }
 
@@ -136,6 +178,7 @@ object AudioController {
     fun handleOutputDisconnected(deviceId: Int): Status? {
         if (deviceId != outputDeviceId) return null
         outputDeviceId = DEFAULT_DEVICE_ID
+        prefs?.edit()?.putInt(KEY_OUTPUT_DEVICE, DEFAULT_DEVICE_ID)?.apply()
         return if (NativeBridge.isRunning()) start() else refresh()
     }
 
@@ -152,13 +195,18 @@ object AudioController {
     fun selectedOutputId(): Int = outputDeviceId
 
     fun start(): Status {
+        applyHeadsetInputFlag()
         NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
         NativeBridge.setPreferredSampleRate(preferredSampleRate)
         val message = NativeBridge.start()
+        // Hanya ingat niat bila stream benar-benar berjalan; bila gagal
+        // (mis. izin ditolak), jangan mencoba memulihkan otomatis.
+        userWantsAudio = NativeBridge.isRunning()
         return current(message)
     }
 
     fun stop(): Status {
+        userWantsAudio = false
         val message = NativeBridge.stop()
         return current(message)
     }
@@ -170,8 +218,16 @@ object AudioController {
     private var interrupted = false
 
     /**
+     * true bila pengguna memang ingin audio berbunyi (menekan Start). Dipakai
+     * agar pemulihan otomatis (onStart / audio focus) tidak menyalakan audio
+     * yang sengaja dimatikan pengguna.
+     */
+    private var userWantsAudio = false
+
+    /**
      * Menjeda audio karena aplikasi masuk background atau kehilangan audio
-     * focus. Status berjalan diingat agar bisa dilanjutkan lewat [resume].
+     * focus. Keinginan pengguna diingat agar bisa dilanjutkan lewat
+     * [resumeAfterInterruption].
      */
     fun pauseForInterruption() {
         if (NativeBridge.isRunning()) {
@@ -183,13 +239,18 @@ object AudioController {
         }
     }
 
-    /** Melanjutkan audio setelah [pauseForInterruption]. */
+    /**
+     * Melanjutkan audio setelah [pauseForInterruption]. Hanya berjalan bila
+     * pengguna sebelumnya menekan Start; tidak menyalakan audio yang sudah
+     * dihentikan lewat tombol Stop.
+     */
     fun resumeAfterInterruption() {
-        if (interrupted) {
-            NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
-            NativeBridge.start()
-            interrupted = false
-        }
+        // Selalu bersihkan flag agar pemulihan berikutnya tidak terblokir.
+        interrupted = false
+        if (!userWantsAudio || NativeBridge.isRunning()) return
+        NativeBridge.setDeviceIds(inputDeviceId, outputDeviceId)
+        NativeBridge.setPreferredSampleRate(preferredSampleRate)
+        NativeBridge.start()
     }
 
     /** true bila audio sedang dijeda karena interupsi. */
@@ -217,7 +278,10 @@ object AudioController {
 
     fun outputGainDb(): Float = NativeBridge.outputGainDb()
 
-    fun setLimiterCeilingDb(db: Float) = NativeBridge.setLimiterCeilingDb(db)
+    fun setLimiterCeilingDb(db: Float) {
+        prefs?.edit()?.putFloat(KEY_LIMITER_DB, db)?.apply()
+        NativeBridge.setLimiterCeilingDb(db)
+    }
 
     fun limiterCeilingDb(): Float = NativeBridge.limiterCeilingDb()
 
@@ -262,7 +326,10 @@ object AudioController {
 
     fun isMuted(): Boolean = NativeBridge.isMuted()
 
-    fun setGlobalBypass(bypass: Boolean) = NativeBridge.setGlobalBypass(bypass)
+    fun setGlobalBypass(bypass: Boolean) {
+        prefs?.edit()?.putBoolean(KEY_GLOBAL_BYPASS, bypass)?.apply()
+        NativeBridge.setGlobalBypass(bypass)
+    }
 
     fun isGlobalBypass(): Boolean = NativeBridge.isGlobalBypass()
 
@@ -291,7 +358,8 @@ object AudioController {
     private const val KEY_INPUT_GAIN_DB = "input_gain_db"
     private const val KEY_OUTPUT_GAIN_DB = "output_gain_db"
     private const val KEY_MUTED = "muted"
-
+    private const val KEY_LIMITER_DB = "limiter_db"
+    private const val KEY_GLOBAL_BYPASS = "global_bypass"
 
     private fun current(message: String): Status = Status(
         running = NativeBridge.isRunning(),

@@ -53,7 +53,7 @@ apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
       terhubung untuk memverifikasi tanda tangan, label, instalasi, dan
       ketiadaan crash saat buka/tutup.
 - [x] Latensi round-trip diukur dari timestamp Oboe (bukan angka teoretis).
-- [x] Kontrak JNI sinkron (`bash scripts/check_jni.sh`): 57 fungsi native
+- [x] Kontrak JNI sinkron (`bash scripts/check_jni.sh`): 59 fungsi native
       terdeklarasi di Kotlin dan terimplementasi di C++.
 - [x] Artefak APK debug/release + AAB beserta checksum di-commit di `artifacts/`.
 
@@ -74,11 +74,22 @@ bash scripts/collect_artifacts.sh
 
 ## Kompatibilitas interface audio
 
-Perangkat diuji memakai jalur Oboe low-latency dengan format float dan input
-`Unprocessed` (tanpa AGC/noise-suppression) agar karakter gitar tetap utuh.
+Pembukaan stream memakai strategi berlapis (fallback) agar tetap berbunyi di
+perangkat nyata: dicoba `Exclusive` + `LowLatency`, lalu `Shared`, lalu
+`PerformanceMode::None`, dan terakhir sample rate bawaan perangkat. Format
+float dengan `setFormatConversionAllowed(true)` dan `setChannelConversionAllowed(true)`
+sehingga perangkat yang hanya mendukung I16/mono tetap dapat memakai jalur
+low-latency. `setPackageName` selalu diisi (wajib untuk stream input pada
+Android 12+).
 
 - Input didukung: mikrofon internal, headset kabel, USB audio interface
   (mis. iRig), USB headset.
+- **iRig ke lubang headset**: iRig yang dicolok ke jack 3.5 mm muncul sebagai
+  perangkat "Headset kabel". Bila pengguna masih memakai input default,
+  aplikasi memilihnya otomatis; engine memakai `InputPreset::VoiceRecognition`
+  untuk membuka mikrofon TRRS headset, lalu turun ke `Generic` bila gagal.
+- Preset `Unprocessed` dipakai untuk input mikrofon/USB agar karakter gitar
+  utuh (tanpa AGC/noise-suppression).
 - Sumber dipilih di **Settings → Sumber Input**; daftar perangkat berasal dari
   sistem dan diperbarui otomatis saat dicabut/dicolok.
 - Perubahan parameter dan perangkat dapat memicu penyambungan ulang stream

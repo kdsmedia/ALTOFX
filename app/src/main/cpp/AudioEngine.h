@@ -147,6 +147,23 @@ public:
     }
 
     /**
+     * Menandai apakah perangkat input yang dipilih terhubung ke jack headset
+     * (mis. iRig yang dicolok ke lubang headset). Dipakai untuk memilih
+     * InputPreset::VoiceRecognition, yang pada banyak perangkat membuka jalur
+     * mikrofon headset (TRRS) dengan benar.
+     */
+    void setHeadsetInput(bool headset) { headsetInput_.store(headset); }
+
+    /**
+     * Nama paket aplikasi. Wajib diisi untuk stream input pada Android 12+
+     * (API 31+): tanpa ini stream input dapat gagal karena pemeriksaan izin.
+     */
+    void setPackageName(std::string packageName) {
+        std::lock_guard<std::mutex> guard(errorLock_);
+        packageName_ = std::move(packageName);
+    }
+
+    /**
      * Sample rate yang diinginkan (BAB 15). Oboe akan memakai nilai ini bila
      * didukung perangkat; bila tidak, stream dibuka pada rate bawaan perangkat
      * dan [sampleRate] melaporkan rate sebenarnya. Berlaku pada pembukaan
@@ -171,6 +188,8 @@ public:
 
 private:
     oboe::Result openStreams();
+    oboe::Result openOutputStream(oboe::AudioStreamBuilder& builder);
+    oboe::Result openInputStream(oboe::AudioStreamBuilder& builder);
 
     std::shared_ptr<oboe::AudioStream> inputStream_;
     std::shared_ptr<oboe::AudioStream> outputStream_;
@@ -180,6 +199,7 @@ private:
     std::atomic<int32_t> channelCount_{0};
     std::atomic<int32_t> inputDeviceId_{-1};
     std::atomic<int32_t> outputDeviceId_{-1};
+    std::atomic<bool> headsetInput_{false};
     std::atomic<int32_t> preferredSampleRate_{48000};
     std::atomic<float> inputLevel_{0.0f};
     std::atomic<float> outputLevel_{0.0f};
@@ -199,6 +219,7 @@ private:
     std::mutex lock_;  // Melindungi pembukaan/penutupan stream, bukan callback.
     mutable std::mutex errorLock_;
     std::string lastError_;
+    std::string packageName_;
 };
 
 }  // namespace alto

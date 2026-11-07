@@ -13,6 +13,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,16 +64,19 @@ fun EffectsScreen() {
         }
 
         order.forEachIndexed { position, type ->
-            EffectPanel(
-                type = type,
-                position = position,
-                total = order.size,
-                onMove = { delta ->
-                    NativeBridge.moveEffect(type.id, delta)
-                    order = readOrder()
-                },
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
+            // key(type): state slider/switch mengikuti efek saat urutan berubah.
+            key(type) {
+                EffectPanel(
+                    type = type,
+                    position = position,
+                    total = order.size,
+                    onMove = { delta ->
+                        NativeBridge.moveEffect(type.id, delta)
+                        order = readOrder()
+                    },
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
         }
     }
 }

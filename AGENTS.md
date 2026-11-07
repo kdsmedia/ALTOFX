@@ -79,6 +79,17 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       ducking audio focus (perbaikan bug), pemilihan sample rate, restore default
       preset, reset seluruh efek saat interupsi (BAB 7), perbaikan bug indeks
       DelayLine (heap-buffer-overflow) yang ditemukan lewat AddressSanitizer.
+- [x] Hardening pembukaan stream audio (perbaikan "APK tidak berbunyi"):
+      strategi berlapis `openOutputStream`/`openInputStream` (Exclusive ->
+      Shared -> None -> sample rate bawaan perangkat), `setPackageName` selalu
+      diisi (wajib untuk input di Android 12+), format/kanal conversion
+      diizinkan, DeviceId spesifik dibuang setelah percobaan pertama gagal,
+      guard pointer null di callback, dan `onErrorAfterClose` memakai
+      `try_lock` + memeriksa hasil restart. Ditambah dukungan iRig ke lubang
+      headset: preset `VoiceRecognition` dipilih untuk input headset, pemilihan
+      input headset/USB otomatis saat start & hotplug. Limiter & bypass global
+      kini bertahan antar sesi; `resumeAfterInterruption` hanya menyalakan audio
+      bila pengguna memang menekan Start.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.
@@ -159,3 +170,12 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
   `android.permission.USB_PERMISSION` (bukan izin Android yang nyata).
 - Sample rate: `AudioEngine::setPreferredSampleRate` (default 48000). Perangkat
   dapat mengabaikannya; `sampleRate()` selalu melaporkan rate stream sebenarnya.
+- Pembukaan stream HARUS berlapis (fallback): jangan memaksa Exclusive +
+  Unprocessed + 1 kanal + 48 kHz tanpa alternatif. Banyak perangkat menolak
+  kombinasi itu sehingga aplikasi tampak "tidak berbunyi". `setPackageName`
+  wajib diisi (input Android 12+). Setelah percobaan pertama gagal, buang
+  DeviceId spesifik agar memakai perangkat default sistem.
+- iRig ke lubang headset = perangkat "Headset kabel" (TYPE_WIRED_HEADSET).
+  Untuk input headset, coba `InputPreset::VoiceRecognition` lebih dulu
+  (membuka mikrofon TRRS), lalu `Generic`. Sinyal gitar tetap diutamakan lewat
+  `Unprocessed` untuk mikrofon internal/USB.

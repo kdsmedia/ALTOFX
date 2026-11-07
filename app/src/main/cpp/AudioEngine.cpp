@@ -34,55 +34,150 @@ std::string AudioEngine::version() const {
     return "ALTO GUITAR FX native engine 0.2 (BAB 4, Oboe full-duplex)";
 }
 
-oboe::Result AudioEngine::openStreams() {
-    const int32_t outputDeviceId = outputDeviceId_.load();
-    const int32_t inputDeviceId = inputDeviceId_.load();
-
-    // Output dibuka lebih dulu (rekomendasi Oboe untuk hasil terbaik).
-    oboe::AudioStreamBuilder outputBuilder;
-    outputBuilder.setDirection(oboe::Direction::Output)
-            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-            ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::Float)
-            ->setChannelCount(kOutputChannels)
-            ->setSampleRate(preferredSampleRate_.load())
-            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
-            ->setDataCallback(this)
-            ->setErrorCallback(this);
-    // -1 berarti perangkat default sistem.
-    if (outputDeviceId >= 0) {
-        outputBuilder.setDeviceId(outputDeviceId);
+oboe::Result AudioEngine::openOutputStream(oboe::AudioStreamBuilder& builder) {
+    // Strategi berlapis: coba Exclusive + LowLatency (latensi terbaik), lalu
+    // turun ke Shared bila perangkat menolak. Tanpa fallback ini, banyak
+    // perangkat menolak Exclusive dan aplikasi tampak "tidak berbunyi".
+    // Setelah percobaan pertama gagal, DeviceId spesifik dibuang agar
+    // percobaan berikutnya memakai perangkat default sistem.
+    int32_t deviceId = outputDeviceId_.load();
+    if (deviceId < 0) {
+        deviceId = oboe::kUnspecified;
     }
 
-    oboe::Result result = outputBuilder.openStream(outputStream_);
+    struct Attempt {
+        oboe::SharingMode sharing;
+        oboe::PerformanceMode performance;
+        int32_t sampleRate;  // 0 = biarkan perangkat memilih (kUnspecified).
+    };
+    const Attempt attempts[] = {
+            {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
+             preferredSampleRate_.load()},
+            {oboe::SharingMode::Shared, oboe::PerformanceMode::LowLatency,
+             preferredSampleRate_.load()},
+            {oboe::SharingMode::Shared, oboe::PerformanceMode::None,
+             preferredSampleRate_.load()},
+            // Upaya terakhir: biarkan perangkat memilih sample rate-nya sendiri.
+            {oboe::SharingMode::Shared, oboe::PerformanceMode::None, oboe::kUnspecified},
+    };
+
+    oboe::Result lastResult = oboe::Result::ErrorInternal;
+    for (const auto& attempt : attempts) {
+        builder.setDirection(oboe::Direction::Output)
+                ->setSharingMode(attempt.sharing)
+                ->setPerformanceMode(attempt.performance)
+                ->setFormat(oboe::AudioFormat::Float)
+                // Izinkan konversi format/kanal agar tetap dapat jalur
+                // low-latency pada perangkat yang hanya mendukung I16/mono.
+                ->setFormatConversionAllowed(true)
+                ->setChannelConversionAllowed(true)
+                ->setChannelCount(kOutputChannels)
+                ->setSampleRate(attempt.sampleRate)
+                ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
+                ->setDeviceId(deviceId)
+                ->setDataCallback(this)
+                ->setErrorCallback(this);
+        lastResult = builder.openStream(outputStream_);
+        if (lastResult == oboe::Result::OK) {
+            return lastResult;
+        }
+        LOGE("Buka output gagal (sharing=%d, perf=%d, rate=%d): %s",
+             static_cast<int>(attempt.sharing), static_cast<int>(attempt.performance),
+             attempt.sampleRate, oboe::convertToText(lastResult));
+        outputStream_.reset();
+        // Perangkat spesifik tidak ada lagi: pakai perangkat default sistem.
+        deviceId = oboe::kUnspecified;
+    }
+    return lastResult;
+}
+
+oboe::Result AudioEngine::openInputStream(oboe::AudioStreamBuilder& builder) {
+    int32_t deviceId = inputDeviceId_.load();
+    if (deviceId < 0) {
+        deviceId = oboe::kUnspecified;
+    }
+    const bool headset = headsetInput_.load();
+    const int32_t outputSampleRate = outputStream_ ? outputStream_->getSampleRate() : 0;
+    const int32_t outputCapacity =
+            outputStream_ ? outputStream_->getBufferCapacityInFrames() : 0;
+
+    struct Attempt {
+        oboe::SharingMode sharing;
+        oboe::PerformanceMode performance;
+        oboe::InputPreset preset;
+        int32_t channels;
+    };
+    // Urutan: jalur terbaik lebih dulu. Bila input headset (iRig di jack
+    // headset), coba VoiceRecognition lebih awal karena pada banyak perangkat
+    // preset itulah yang membuka mikrofon headset (TRRS) dengan benar.
+    const Attempt attempts[] = {
+            {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
+             headset ? oboe::InputPreset::VoiceRecognition : oboe::InputPreset::Unprocessed,
+             kInputChannels},
+            {oboe::SharingMode::Exclusive, oboe::PerformanceMode::LowLatency,
+             oboe::InputPreset::Generic, kInputChannels},
+            {oboe::SharingMode::Shared, oboe::PerformanceMode::LowLatency,
+             oboe::InputPreset::Generic, kInputChannels},
+            {oboe::SharingMode::Shared, oboe::PerformanceMode::None,
+             oboe::InputPreset::Generic, kInputChannels},
+    };
+
+    oboe::Result lastResult = oboe::Result::ErrorInternal;
+    for (const auto& attempt : attempts) {
+        builder.setDirection(oboe::Direction::Input)
+                ->setSharingMode(attempt.sharing)
+                ->setPerformanceMode(attempt.performance)
+                ->setFormat(oboe::AudioFormat::Float)
+                ->setFormatConversionAllowed(true)
+                ->setChannelConversionAllowed(true)
+                ->setInputPreset(attempt.preset)
+                ->setChannelCount(attempt.channels)
+                ->setSampleRate(outputSampleRate)
+                ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
+                ->setDeviceId(deviceId)
+                ->setErrorCallback(this);
+        // Buffer input dua kali kapasitas output agar tidak underrun.
+        if (outputCapacity > 0) {
+            builder.setBufferCapacityInFrames(outputCapacity * 2);
+        }
+        lastResult = builder.openStream(inputStream_);
+        if (lastResult == oboe::Result::OK) {
+            return lastResult;
+        }
+        LOGE("Buka input gagal (sharing=%d, preset=%d): %s",
+             static_cast<int>(attempt.sharing), static_cast<int>(attempt.preset),
+             oboe::convertToText(lastResult));
+        inputStream_.reset();
+        // Perangkat spesifik tidak ada lagi: pakai perangkat default sistem.
+        deviceId = oboe::kUnspecified;
+    }
+    return lastResult;
+}
+
+oboe::Result AudioEngine::openStreams() {
+    std::string packageName;
+    {
+        std::lock_guard<std::mutex> guard(errorLock_);
+        packageName = packageName_;
+    }
+    // Output dibuka lebih dulu (rekomendasi Oboe untuk hasil terbaik).
+    oboe::AudioStreamBuilder outputBuilder;
+    if (!packageName.empty()) {
+        outputBuilder.setPackageName(packageName);
+    }
+    oboe::Result result = openOutputStream(outputBuilder);
     if (result != oboe::Result::OK) {
-        LOGE("Buka output gagal: %s", oboe::convertToText(result));
         outputStream_.reset();
         return result;
     }
 
     oboe::AudioStreamBuilder inputBuilder;
-    inputBuilder.setDirection(oboe::Direction::Input)
-            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-            ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::Float)
-            ->setChannelCount(kInputChannels)
-            // Unprocessed mencegah AGC/derau/noise-suppression bawaan yang
-            // merusak sinyal gitar. Penting untuk mikrofon internal maupun
-            // interface USB seperti iRig.
-            ->setInputPreset(oboe::InputPreset::Unprocessed)
-            ->setSampleRate(outputStream_->getSampleRate())
-            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
-            // Buffer input dua kali kapasitas output agar tidak underrun.
-            ->setBufferCapacityInFrames(outputStream_->getBufferCapacityInFrames() * 2)
-            ->setErrorCallback(this);
-    if (inputDeviceId >= 0) {
-        inputBuilder.setDeviceId(inputDeviceId);
+    if (!packageName.empty()) {
+        // Penting untuk stream input pada Android 12+ (pemeriksaan izin).
+        inputBuilder.setPackageName(packageName);
     }
-
-    result = inputBuilder.openStream(inputStream_);
+    result = openInputStream(inputBuilder);
     if (result != oboe::Result::OK) {
-        LOGE("Buka input gagal: %s", oboe::convertToText(result));
         inputStream_.reset();
         outputStream_->close();
         outputStream_.reset();
@@ -164,6 +259,12 @@ oboe::DataCallbackResult AudioEngine::onBothStreamsReady(const void *inputData, 
     // Efek DSP ditambahkan pada BAB 7.
     const auto *input = static_cast<const float *>(inputData);
     auto *output = static_cast<float *>(outputData);
+
+    // Pertahanan: bila tidak ada data (mis. input belum siap), jangan sentuh
+    // pointer null. Output sudah dikosongkan (silence) oleh FullDuplexStream.
+    if (input == nullptr || output == nullptr) {
+        return oboe::DataCallbackResult::Continue;
+    }
 
     const int32_t inChannels = inputStream_ ? inputStream_->getChannelCount() : kInputChannels;
     const int32_t outChannels = outputStream_ ? outputStream_->getChannelCount() : kOutputChannels;
@@ -313,21 +414,31 @@ int64_t AudioEngine::xrunCount() const {
 
 void AudioEngine::onErrorAfterClose(oboe::AudioStream * /*stream*/, oboe::Result error) {
     // Perangkat berubah (mis. iRig dicabut/dicolok) atau koneksi terputus.
-    if (running_.load() && error == oboe::Result::ErrorDisconnected) {
-        LOGI("Perangkat terputus, mencoba membuka ulang stream");
-        setError(errorLock_, lastError_,
-                 "Perangkat audio terputus; mencoba menyambung ulang.");
-        std::lock_guard<std::mutex> guard(lock_);
+    if (error != oboe::Result::ErrorDisconnected || !running_.load()) {
+        return;
+    }
+    LOGI("Perangkat terputus, mencoba membuka ulang stream");
+    setError(errorLock_, lastError_,
+             "Perangkat audio terputus; mencoba menyambung ulang.");
+
+    // Pakai try_lock: bila thread lain sedang start/stop, biarkan thread itu
+    // yang menangani. Menunggu di sini bisa mengunci callback error.
+    std::unique_lock<std::mutex> guard(lock_, std::try_to_lock);
+    if (!guard.owns_lock()) {
+        return;
+    }
+    // Stream sudah ditutup oleh Oboe; lepaskan referensi kita.
+    if (inputStream_) { inputStream_->close(); inputStream_.reset(); }
+    if (outputStream_) { outputStream_->close(); outputStream_.reset(); }
+    running_.store(false);
+    if (openStreams() == oboe::Result::OK && FullDuplexStream::start() == oboe::Result::OK) {
+        running_.store(true);
+        clearLastError();
+    } else {
         if (inputStream_) { inputStream_->close(); inputStream_.reset(); }
         if (outputStream_) { outputStream_->close(); outputStream_.reset(); }
-        if (openStreams() == oboe::Result::OK) {
-            FullDuplexStream::start();
-            clearLastError();
-        } else {
-            running_.store(false);
-            setError(errorLock_, lastError_,
-                     "Perangkat audio terputus dan gagal dibuka ulang.");
-        }
+        setError(errorLock_, lastError_,
+                 "Perangkat audio terputus dan gagal dibuka ulang.");
     }
 }
 
