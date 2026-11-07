@@ -90,6 +90,26 @@ Selalu jalankan `assembleDebug` setelah setiap perubahan agar kesalahan ketahuan
       input headset/USB otomatis saat start & hotplug. Limiter & bypass global
       kini bertahan antar sesi; `resumeAfterInterruption` hanya menyalakan audio
       bila pengguna memang menekan Start.
+- [x] Perbaikan kualitas suara & UI (masukan pengguna uji perangkat):
+      1) **Bising** — Noise Gate kini aktif secara bawaan (diaktifkan di
+         `MainActivity` lewat `EffectController`, karena kontrak uji bypass DSP
+         mengharuskan efek default nonaktif di sisi C++). Ditambah waktu tahan
+         (hold) internal 90 ms supaya gate tidak memotong nada yang meluruh,
+         dan threshold bawaan dinaikkan ke -45 dB. Semua preset bawaan kini
+         memuat Noise Gate.
+      2) **Volume output kecil** — level output master bawaan +12 dB (sebelumnya
+         0 dB), dengan migrasi pengaturan (`SETTINGS_VERSION`) agar instalasi
+         lama ikut naik tanpa mengubah nilai yang pernah disetel pengguna.
+         Rentang slider Level Output diperluas ke -40..+18 dB.
+      3) **Efek terlalu singkat** — skala drive dinaikkan (Overdrive 30->200,
+         Distortion 120->800, Fuzz 400->2000) sehingga sinyal tetap terjenuh
+         selama nada meluruh (~3,5 s), bukan hanya ~1 s pada serangan awal.
+      4) **UI pedal** — komponen `PedalBox` baru: kotak pedal dengan LED,
+         tombol ON/OFF bergaya sakelar kaki (bukan tombol geser), dan tombol
+         Preset cepat. Dipakai di layar Effects dan Home.
+      5) **Pengaturan per efek** — rute `effect/{id}` + `EffectDetailScreen`;
+         setiap efek punya halamannya sendiri (parameter, preset cepat, posisi
+         rantai, reset), tidak lagi satu halaman gabungan.
 
 ## Konvensi kode
 - Satu BAB diselesaikan & di-build sebelum lanjut BAB berikutnya.

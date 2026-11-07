@@ -26,23 +26,25 @@ object BuiltInPresets {
     /** Gate ringan → EQ → Reverb. Bersih dan jernih. */
     private fun clean() = build(
         "CLEAN",
-        EffectType.NOISE_GATE to mapOf(0 to -60f, 1 to 120f, 2 to 5f),
+        EffectType.NOISE_GATE to mapOf(0 to -50f, 1 to 150f, 2 to 5f),
         EffectType.EQUALIZER to mapOf(0 to 1f, 1 to 0f, 2 to 1.5f),
         EffectType.REVERB to mapOf(0 to 0.35f, 1 to 0.3f, 2 to 0.5f, 3 to 0.18f)
     )
 
-    /** Compressor ringan → Overdrive → EQ → Reverb. Hangat dan dinamis. */
+    /** Gate → Compressor ringan → Overdrive → EQ → Reverb. Hangat dan dinamis. */
     private fun blues() = build(
         "BLUES",
+        EffectType.NOISE_GATE to mapOf(0 to -50f, 1 to 120f, 2 to 5f),
         EffectType.COMPRESSOR to mapOf(0 to -20f, 1 to 3f, 2 to 15f, 3 to 150f, 4 to 4f),
         EffectType.OVERDRIVE to mapOf(0 to 0.45f, 1 to 0.55f, 2 to 0.7f),
         EffectType.EQUALIZER to mapOf(0 to 1.5f, 1 to 1f, 2 to 1f),
         EffectType.REVERB to mapOf(0 to 0.4f, 1 to 0.35f, 2 to 0.45f, 3 to 0.22f)
     )
 
-    /** EQ → Compressor ringan → Reverb. Menonjolkan karakter input. */
+    /** Gate → EQ → Compressor ringan → Reverb. Menonjolkan karakter input. */
     private fun acoustic() = build(
         "ACOUSTIC",
+        EffectType.NOISE_GATE to mapOf(0 to -50f, 1 to 150f, 2 to 6f),
         EffectType.EQUALIZER to mapOf(0 to 2f, 1 to -1f, 2 to 2.5f),
         EffectType.COMPRESSOR to mapOf(0 to -22f, 1 to 2.5f, 2 to 20f, 3 to 180f, 4 to 3f),
         EffectType.REVERB to mapOf(0 to 0.3f, 1 to 0.3f, 2 to 0.55f, 3 to 0.2f)

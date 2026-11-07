@@ -17,13 +17,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,7 +44,9 @@ import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.ui.components.LevelMeter
 import com.altomedia.altoguitarfx.ui.components.PanelCard
+import com.altomedia.altoguitarfx.ui.components.PedalBox
 import com.altomedia.altoguitarfx.ui.components.ScreenScaffold
+import com.altomedia.altoguitarfx.ui.effects.applyQuickPreset
 import com.altomedia.altoguitarfx.ui.theme.Accent
 import com.altomedia.altoguitarfx.ui.theme.Danger
 import com.altomedia.altoguitarfx.ui.theme.TextSecondary
@@ -485,10 +487,10 @@ private fun QuickDeviceRow(
 }
 
 /**
- * Strip pedalboard ringkas di Home (blueprint bagian 6: 'Pedalboard dengan
- * status ON/OFF dan kontrol parameter'). Menampilkan efek sesuai urutan
- * pemrosesan nyata dari mesin DSP, dengan tombol ON/OFF yang langsung bekerja.
- * Kontrol parameter ada di layar Effects.
+ * Strip pedalboard di Home (blueprint bagian 6: 'Pedalboard dengan status
+ * ON/OFF dan kontrol parameter'). Menampilkan efek sebagai kotak pedal dengan
+ * tombol ON/OFF bergaya sakelar kaki, tombol Preset cepat, dan tombol Atur
+ * untuk membuka layar pengaturan efek tersebut.
  */
 @Composable
 private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
@@ -503,13 +505,15 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
     }
 
     var pedals by remember { mutableStateOf(readPedals()) }
+    var presetIndex by remember { mutableStateOf(emptyMap<EffectType, Int>()) }
 
     PanelCard(
         title = "Pedalboard",
         modifier = Modifier.padding(top = 12.dp)
     ) {
         Text(
-            text = "Aktifkan/nonaktifkan efek. Ubah parameter di layar Effects.",
+            text = "Aktifkan/nonaktifkan efek atau pilih preset cepat. Atur " +
+                "parameter di layar Effects.",
             color = TextSecondary,
             fontSize = 12.sp
         )
@@ -517,22 +521,34 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 rowItems.forEach { (type, enabled) ->
-                    Column(modifier = Modifier.weight(1f)) {
-                        Switch(
-                            checked = enabled,
-                            onCheckedChange = {
+                    key(type) {
+                        val presetName = type.quickPresets
+                            .getOrNull((presetIndex[type] ?: 0) % maxOf(1, type.quickPresets.size))
+                            ?.name
+                        PedalBox(
+                            title = type.label,
+                            enabled = enabled,
+                            presetLabel = presetName,
+                            onToggle = {
                                 EffectController.setEnabled(type, it)
                                 pedals = readPedals()
-                            }
-                        )
-                        Text(
-                            text = type.label,
-                            color = if (enabled) Accent else TextSecondary,
-                            fontSize = 12.sp
+                            },
+                            onPreset = if (type.quickPresets.isEmpty()) null else {
+                                {
+                                    applyQuickPreset(type, presetIndex[type] ?: 0)
+                                    presetIndex = presetIndex.toMutableMap().also {
+                                        it[type] = ((presetIndex[type] ?: 0) + 1) %
+                                            type.quickPresets.size
+                                    }
+                                    pedals = readPedals()
+                                }
+                            },
+                            onOpen = { onNavigate(Destination.EFFECTS) },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -543,9 +559,9 @@ private fun PedalboardPanel(onNavigate: (Destination) -> Unit) {
         }
         OutlinedButton(
             onClick = { onNavigate(Destination.EFFECTS) },
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 10.dp)
         ) {
-            Text("Atur Parameter")
+            Text("Buka Pedalboard")
         }
     }
 }

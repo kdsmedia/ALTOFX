@@ -490,7 +490,7 @@ private fun LevelPanel() {
         GainSlider(
             label = "Level Output",
             value = outputGain,
-            range = -40f..12f,
+            range = -40f..18f,
             onChange = {
                 outputGain = it
                 AudioController.setOutputGainDb(it)
@@ -504,6 +504,15 @@ private fun LevelPanel() {
                 ceiling = it
                 AudioController.setLimiterCeilingDb(it)
             }
+        )
+
+        Text(
+            text = "Bila keluaran terasa terlalu kecil, naikkan Level Output " +
+                "atau Trim Input. Limiter tetap menjaga puncak pada batas agar " +
+                "tidak terjadi clipping keras.",
+            color = TextSecondary,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 6.dp)
         )
 
         Text(

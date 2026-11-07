@@ -23,6 +23,8 @@ import androidx.navigation.compose.rememberNavController
 import com.altomedia.altoguitarfx.audio.AudioController
 import com.altomedia.altoguitarfx.audio.AudioDeviceManager
 import com.altomedia.altoguitarfx.audio.AudioFocusController
+import com.altomedia.altoguitarfx.effects.EffectController
+import com.altomedia.altoguitarfx.effects.EffectType
 import com.altomedia.altoguitarfx.navigation.AppNavigation
 import com.altomedia.altoguitarfx.navigation.Destination
 import com.altomedia.altoguitarfx.navigation.switchTab
@@ -43,6 +45,13 @@ class MainActivity : ComponentActivity() {
 
         // BAB 5/15: pulihkan pilihan perangkat & sample rate sebelum dipakai.
         AudioController.init(this)
+
+        // BAB 7: noise gate aktif secara bawaan supaya bising (hiss) saat
+        // perangkat dicolok — termasuk iRig di jack headset — langsung ditekan
+        // tanpa perlu mengaktifkan efek manual. Bila pengguna memuat preset,
+        // keadaan efek mengikuti preset tersebut.
+        EffectController.applyDefaults(EffectType.NOISE_GATE)
+        EffectController.setEnabled(EffectType.NOISE_GATE, true)
 
         // BAB 15: tangani audio focus dan lifecycle. Audio dijeda saat aplikasi
         // masuk background atau kehilangan focus, lalu dilanjutkan kembali.

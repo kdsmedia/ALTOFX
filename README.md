@@ -25,6 +25,11 @@ mesin DSP nyata, dan daftar perangkat berasal dari sistem Android.
 - **12 efek** (blueprint bagian 7): Noise Gate, Compressor, Overdrive,
   Distortion, Fuzz, Equalizer, Chorus, Flanger, Phaser, Tremolo, Delay, Reverb.
   Setiap efek punya parameter, bypass, dan reset sendiri.
+- **Pedalboard bergaya pedal fisik**: setiap efek tampil sebagai kotak dengan
+  LED dan tombol ON/OFF (sakelar kaki), tombol Preset cepat per efek, serta
+  halaman pengaturan terpisah per efek.
+- **Noise Gate aktif secara bawaan** untuk menekan bising (hiss) saat perangkat
+  dicolok; waktu tahan (hold) internal menjaga nada yang meluruh tidak terpotong.
 - **Urutan efek** dapat diubah dari UI (naik/turun, reset ke bawaan).
 - **Preset**: 9 preset bawaan (CLEAN, BLUES, ACOUSTIC, CRUNCH, ROCK, HARD ROCK,
   METAL, LEAD SOLO, AMBIENT) + simpan, rename, duplikasi, hapus, dan restore

@@ -14,7 +14,9 @@ namespace alto {
  *   2 attack     : 1..50 ms (waktu membuka saat sinyal melewati ambang)
  *
  * Detektor memakai selubung (envelope) dengan histeresis 3 dB agar gate tidak
- * berkedip (chatter) pada sinyal di sekitar ambang.
+ * berkedip (chatter) pada sinyal di sekitar ambang. Ada juga waktu tahan
+ * (hold) internal supaya gate tidak menutup saat nada sedang meluruh atau di
+ * sela-sela frasa — tanpa menambah parameter yang terlihat pengguna.
  */
 class NoiseGate : public Effect {
 public:
@@ -37,6 +39,9 @@ private:
     float envelopeCoefficient_ = 0.0f;
     float attackCoefficient_ = 0.0f;
     float releaseCoefficient_ = 0.0f;
+    bool gateOpen_ = false;
+    int32_t holdSamples_ = 0;
+    int32_t holdCounter_ = 0;
 };
 
 }  // namespace alto

@@ -22,6 +22,24 @@ object AudioController {
     /** Referensi tuning standar (A4 = 440 Hz, BAB 14). */
     const val DEFAULT_TUNER_REFERENCE = 440f
 
+    /**
+     * Level output master bawaan (BAB 15). Sinyal gitar biasanya hanya sekitar
+     * -20..-10 dBFS; tanpa penguatan, keluaran ke speaker aktif terasa sangat
+     * kecil. Default +12 dB membuat level keluaran sepadan tanpa mengorbankan
+     * limiter pengaman (batas 0 dBFS tetap berlaku).
+     */
+    const val DEFAULT_OUTPUT_GAIN_DB = 12f
+
+    /** Trim input bawaan (BAB 15), dalam desibel. */
+    const val DEFAULT_INPUT_GAIN_DB = 0f
+
+    /**
+     * Versi skema pengaturan. Dipakai untuk menerapkan nilai bawaan baru pada
+     * instalasi lama (mis. menaikkan level output) tanpa menyentuh pilihan
+     * perangkat pengguna.
+     */
+    private const val SETTINGS_VERSION = 2
+
     data class Status(
         val running: Boolean,
         val message: String,
@@ -45,6 +63,7 @@ object AudioController {
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs = store
         appContext = context.applicationContext
+        migrateSettings(store)
         inputDeviceId = store.getInt(KEY_INPUT_DEVICE, DEFAULT_DEVICE_ID)
         outputDeviceId = store.getInt(KEY_OUTPUT_DEVICE, DEFAULT_DEVICE_ID)
         preferredSampleRate =
@@ -57,11 +76,35 @@ object AudioController {
         NativeBridge.setTunerReference(
             store.getFloat(KEY_TUNER_REFERENCE, DEFAULT_TUNER_REFERENCE)
         )
-        NativeBridge.setInputGainDb(store.getFloat(KEY_INPUT_GAIN_DB, 0f))
-        NativeBridge.setOutputGainDb(store.getFloat(KEY_OUTPUT_GAIN_DB, 0f))
+        NativeBridge.setInputGainDb(
+            store.getFloat(KEY_INPUT_GAIN_DB, DEFAULT_INPUT_GAIN_DB)
+        )
+        NativeBridge.setOutputGainDb(
+            store.getFloat(KEY_OUTPUT_GAIN_DB, DEFAULT_OUTPUT_GAIN_DB)
+        )
         NativeBridge.setMuted(store.getBoolean(KEY_MUTED, false))
         NativeBridge.setLimiterCeilingDb(store.getFloat(KEY_LIMITER_DB, 0f))
         NativeBridge.setGlobalBypass(store.getBoolean(KEY_GLOBAL_BYPASS, false))
+    }
+
+    /**
+     * Menyesuaikan pengaturan lama ke nilai bawaan terbaru sekali saja. Saat
+     * ini: menaikkan level output ke [DEFAULT_OUTPUT_GAIN_DB] bagi instalasi
+     * yang sebelumnya memakai bawaan lama (0 dB), karena keluaran terasa
+     * sangat kecil. Nilai yang pernah diubah pengguna (mis. -6 dB) dibiarkan.
+     */
+    private fun migrateSettings(store: SharedPreferences) {
+        val version = store.getInt(KEY_SETTINGS_VERSION, 1)
+        if (version >= SETTINGS_VERSION) return
+        val editor = store.edit()
+        if (!store.contains(KEY_OUTPUT_GAIN_DB)) {
+            editor.putFloat(KEY_OUTPUT_GAIN_DB, DEFAULT_OUTPUT_GAIN_DB)
+        } else if (store.getFloat(KEY_OUTPUT_GAIN_DB, 0f) == 0f) {
+            // 0 dB adalah bawaan lama; ganti ke bawaan baru yang lebih nyaring.
+            editor.putFloat(KEY_OUTPUT_GAIN_DB, DEFAULT_OUTPUT_GAIN_DB)
+        }
+        editor.putInt(KEY_SETTINGS_VERSION, SETTINGS_VERSION)
+        editor.apply()
     }
 
     /**
@@ -360,6 +403,7 @@ object AudioController {
     private const val KEY_MUTED = "muted"
     private const val KEY_LIMITER_DB = "limiter_db"
     private const val KEY_GLOBAL_BYPASS = "global_bypass"
+    private const val KEY_SETTINGS_VERSION = "settings_version"
 
     private fun current(message: String): Status = Status(
         running = NativeBridge.isRunning(),
